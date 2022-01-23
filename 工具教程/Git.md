@@ -360,3 +360,26 @@ github--Settings--Collaborators--输入用户名--Copy invite link
 
 
 
+# 6.github和gitee仓库互相同步
+
+github知名度很高但是访问速度很慢，
+
+现状：已有gitee仓库，需要将其同步到github上，且后续提交代码需要同时往两个仓库里提交
+
+操作如下
+
+1、github导入仓库，地址填上gitee仓库地址，gitee和github仓库名称建议相同
+
+注意，可能会导入失败，但github仓库仍然会创建成功，这时可以在github仓库页面，找到如下按钮：
+
+![image-20220123150129184](Git.assets/image-20220123150129184.png)
+
+然后输入gitee仓库地址，再次进行导入
+
+2、git仓库添加多个远程地址
+
+可以通过命令行或者改配置文件的方式进行添加，这里推荐通过git工具来改，不需要记住命令，比如IDEA中自带的git工具。
+
+菜单栏选择Git，选择远程管理
+
+![image-20220123153458744](Git.assets/image-20220123153458744.png)
