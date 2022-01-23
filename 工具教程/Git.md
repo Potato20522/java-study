@@ -366,9 +366,11 @@ github知名度很高但是访问速度很慢，
 
 现状：已有gitee仓库，需要将其同步到github上，且后续提交代码需要同时往两个仓库里提交
 
-操作如下
+操作如下。
 
-1、github导入仓库，地址填上gitee仓库地址，gitee和github仓库名称建议相同
+
+
+前期步骤：github导入仓库，地址填上gitee仓库地址，gitee和github仓库名称建议相同
 
 注意，可能会导入失败，但github仓库仍然会创建成功，这时可以在github仓库页面，找到如下按钮：
 
@@ -376,10 +378,121 @@ github知名度很高但是访问速度很慢，
 
 然后输入gitee仓库地址，再次进行导入
 
-2、git仓库添加多个远程地址
+**先备份.git/config文件**
 
-可以通过命令行或者改配置文件的方式进行添加，这里推荐通过git工具来改，不需要记住命令，比如IDEA中自带的git工具。
+## 方式一：一个remote添加多个url
 
-菜单栏选择Git，选择远程管理
+.git目录中的config文件
+
+添加：url = https://github.com/Potato20522/java-study.git
+
+其他的不要动
+
+```
+[core]
+	repositoryformatversion = 0
+	filemode = false
+	bare = false
+	logallrefupdates = true
+	symlinks = false
+	ignorecase = true
+[remote "origin"]
+	url = https://gitee.com/potato20522/java-study.git
+	url = https://github.com/Potato20522/java-study.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
+
+```
+
+结果：
+
+只需要commit一次、push一次就行
+
+![image-20220123154226713](Git.assets/image-20220123154226713.png)
+
+注意：这种方式，在一般的git工具里，只会显示最后一条url：
+
+![image-20220123154947298](Git.assets/image-20220123154947298.png)
+
+但是用命令行就可以看到完整的：
+
+```
+E:\Gitee\java-study>git remote -v
+origin  https://gitee.com/potato20522/java-study.git (fetch)
+origin  https://gitee.com/potato20522/java-study.git (push)
+origin  https://github.com/Potato20522/java-study.git (push)
+```
+
+### 方式一的命令行
+
+```
+git remote set-url --add 仓库B(名称) http://仓库A地址
+```
+
+查看远程仓库情况。可以看到 github 远程仓库有两个 push 地址。这种方法的好处是每次只需要 push 一次就行了。
+git remote -v
+
+## 方式二：多个remote
+
+git仓库添加多个远程地址
+
+可以通过命令行或者改./git/config配置文件的方式进行添加。这里IDEA中自带的git工具来改。
+
+菜单栏选择Git，选择远程管理,刚打开是这样：
 
 ![image-20220123153458744](Git.assets/image-20220123153458744.png)
+
+然后，写成这样
+
+![image-20220123155224501](Git.assets/image-20220123155224501.png)
+
+这样的话.git/config文件就变成这样：
+
+```
+[core]
+	repositoryformatversion = 0
+	filemode = false
+	bare = false
+	logallrefupdates = true
+	symlinks = false
+	ignorecase = true
+[remote "gitee"]
+	url = https://gitee.com/potato20522/java-study.git
+	fetch = +refs/heads/*:refs/remotes/gitee/*
+[branch "master"]
+	remote = gitee
+	merge = refs/heads/master
+[remote "github"]
+	url = https://github.com/Potato20522/java-study.git
+	fetch = +refs/heads/*:refs/remotes/github/*
+```
+
+可以看到，branch一次只能指向一个remote，需要手动切换remote，比较繁琐
+
+### 方式二的命令行
+
+```
+git remote add 仓库 A https:///项目A仓库的地址`
+`git remote add 仓库 B https:///项目B仓库的地址
+```
+
+(仓库 A,B 的名字可以自己起,用来区分哪个远程仓库)，比如
+
+```
+git remote add gitee https://gitee.com/potato20522/java-study.git
+git remote add github B https:///项目B仓库的地址
+```
+
+
+
+查看远程仓库的情况
+`git remote -v`
+可以看到已经有两个远程仓库了
+`git push 仓库A master:master`
+`git push 仓库B master:master`
+pull 的时候也是两次
+`git pull 仓库A master`
+`git pull 仓库B master`
+如果是多个代码仓库,每次都要push 和pull 多次, 比较繁琐，推荐使用方式一
