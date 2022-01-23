@@ -425,6 +425,16 @@ origin  https://gitee.com/potato20522/java-study.git (push)
 origin  https://github.com/Potato20522/java-study.git (push)
 ```
 
+### 排错
+
+push到github时报错：  OpenSSL SSL_read: Connection was reset, errno 10054
+
+只是网络原因造成的，推送失败了没关系，gitee会推送成功的，这里面没有事务回滚这一说
+
+等网络好时，再push就行
+
+
+
 ### 方式一的命令行
 
 ```
