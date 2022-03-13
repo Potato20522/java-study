@@ -4,7 +4,6 @@ package java.lang;
  * @author shkstart
  * @create 2020 上午 11:40
  */
-/*
 public class String {
     //
     static{
@@ -15,4 +14,3 @@ public class String {
         System.out.println("hello,String");
     }
 }
-*/

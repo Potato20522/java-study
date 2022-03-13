@@ -1,7 +1,6 @@
 package com.atguigu.java1;
 
-
-import sun.security.ec.CurveDB;
+import sun.security.util.CurveDB;
 
 import java.net.URL;
 import java.security.Provider;
