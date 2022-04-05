@@ -20,8 +20,8 @@ public class StringIntern2 {
 
         long start = System.currentTimeMillis();
         for (int i = 0; i < MAX_COUNT; i++) {
-//            arr[i] = new String(String.valueOf(data[i % data.length]));
-            arr[i] = new String(String.valueOf(data[i % data.length])).intern();
+//            arr[i] = new String(String.valueOf(data[i % data.length]));//1166ms,10012640个String对象
+            arr[i] = new String(String.valueOf(data[i % data.length])).intern();//2175ms,2083个String对象
 
         }
         long end = System.currentTimeMillis();

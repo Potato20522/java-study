@@ -2,12 +2,27 @@ package com.atguigu.java1;
 
 import org.junit.Test;
 
+import java.util.Scanner;
+
 /**
  * 字符串拼接操作
  * @author shkstart  shkstart@126.com
  * @create 2020  0:59
  */
 public class StringTest5 {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        String in = scanner.next();//输入c
+        String s1 = "a" + "b" + in;//编译期优化：等同于"abc"
+        String s2 = "abc"; //"abc"一定是放在字符串常量池中，将此地址赋给s2
+        /*
+         * 最终.java编译成.class,再执行.class
+         * String s1 = "abc";
+         * String s2 = "abc"
+         */
+        System.out.println(s1 == s2); //false
+        System.out.println(s1.equals(s2)); //true
+    }
     @Test
     public void test1(){
         String s1 = "a" + "b" + "c";//编译期优化：等同于"abc"

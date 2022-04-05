@@ -16,9 +16,9 @@ import org.junit.Test;
 public class StringIntern {
     public static void main(String[] args) {
 
-        String s = new String("1");
+        String s = new String("1");//s-->堆空间中的String对象-->常量池中的"1"
         s.intern();//调用此方法之前，字符串常量池中已经存在了"1"
-        String s2 = "1";
+        String s2 = "1";//s2-->常量池中的"1"
         System.out.println(s == s2);//jdk6：false   jdk7/8：false
 
 

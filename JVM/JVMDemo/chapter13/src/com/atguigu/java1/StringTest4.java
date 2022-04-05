@@ -12,7 +12,7 @@ import java.sql.SQLOutput;
 public class StringTest4 {
     public static void main(String[] args) {
         System.out.println();//2293
-        System.out.println("1");//2294
+        System.out.println("1");//2294，多的一个是换行
         System.out.println("2");
         System.out.println("3");
         System.out.println("4");
