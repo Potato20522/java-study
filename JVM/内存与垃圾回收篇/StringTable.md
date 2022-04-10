@@ -250,7 +250,7 @@ class Memory {
 
 1.常量与常量的拼接结果在常量池,原理是编译期优化
 
-2.常量池中不会存在相同内容的常量。
+2.常量池中不会存在相同内容的常量，但堆空间中的String对象中的字符串值是可以相同的。
 
 3.只要其中有一个是变量,结果就在堆中。变量拼接的原理是 stringbuilder
 
@@ -657,7 +657,84 @@ public class StringIntern2 {
 
 ![image-20220405233938530](img/StringTable.assets/image-20220405233938530.png)
 
+## SpringTable垃圾回收测试
 
+```java
+/**
+ * String的垃圾回收:
+ * -Xms15m -Xmx15m -XX:+PrintStringTableStatistics -XX:+PrintGCDetails
+ *
+ * @author shkstart  shkstart@126.com
+ * @create 2020  21:27
+ */
+public class StringGCTest {
+    public static void main(String[] args) {
+        for (int j = 0; j < 100000; j++) {
+            String.valueOf(j).intern();
+        }
+    }
+}
+```
+
+
+
+```
+[GC (Allocation Failure) [PSYoungGen: 4096K->488K(4608K)] 4096K->672K(15872K), 0.0021885 secs] [Times: user=0.02 sys=0.00, real=0.00 secs] 
+Heap
+ PSYoungGen      total 4608K, used 3583K [0x00000000ffb00000, 0x0000000100000000, 0x0000000100000000)
+  eden space 4096K, 75% used [0x00000000ffb00000,0x00000000ffe05c28,0x00000000fff00000)
+  from space 512K, 95% used [0x00000000fff00000,0x00000000fff7a020,0x00000000fff80000)
+  to   space 512K, 0% used [0x00000000fff80000,0x00000000fff80000,0x0000000100000000)
+ ParOldGen       total 11264K, used 184K [0x00000000ff000000, 0x00000000ffb00000, 0x00000000ffb00000)
+  object space 11264K, 1% used [0x00000000ff000000,0x00000000ff02e000,0x00000000ffb00000)
+ Metaspace       used 3220K, capacity 4496K, committed 4864K, reserved 1056768K
+  class space    used 353K, capacity 388K, committed 512K, reserved 1048576K
+SymbolTable statistics:
+Number of buckets       :     20011 =    160088 bytes, avg   8.000
+Number of entries       :     13379 =    321096 bytes, avg  24.000
+Number of literals      :     13379 =    572392 bytes, avg  42.783
+Total footprint         :           =   1053576 bytes
+Average bucket size     :     0.669
+Variance of bucket size :     0.671
+Std. dev. of bucket size:     0.819
+Maximum bucket size     :         6
+StringTable statistics:
+Number of buckets       :     60013 =    480104 bytes, avg   8.000
+Number of entries       :     55084 =   1322016 bytes, avg  24.000
+Number of literals      :     55084 =   3144192 bytes, avg  57.080
+Total footprint         :           =   4946312 bytes
+Average bucket size     :     0.918
+Variance of bucket size :     0.724
+Std. dev. of bucket size:     0.851
+Maximum bucket size     :         5
+
+```
+
+## G1中的String去重操作
+
+背景:对许多Java应用(有大的也有小的)做的测试得出以下结果：
+
+- 堆存活数据集合里面 String对象占了25%
+
+- 堆存活数据集合里面重复的 String对象有13.5%
+- String对象的平均长度是45
+
+许多大规模的Java应用的瓶颈在于内存，测试表明，在这些类型的应用里面，Java堆中存活的数据集合差不多25%是 String对象。更进一步这里面差不多一半 String对象是重复的，重复的意思是说：String1.equals(string2)=true。堆上存在重复的 String 对象必然是一种内存的浪费。
+这个项目将在G1垃圾收集器中实现自动持续对重复的 String对象进行去重，这样就能避免浪费内存
+
+实现：
+
+- 当垃圾收集器工作的时候，会访问堆上存活的对象。对每一个访问的对象都会检查是否是候选的要去重的 String对象。
+- 如果是，把这个对象的一个引用插入到队列中等待后续的处理。一个去重的线程在后台运行，处理这个队列。处理队列的一个元素意味着从队列删除这个元素，然后尝试去重它引用的 string对象。
+- 使用一个 hashtable来记录所有的被 String对象使用的不重复的char数组。当去重的时候，会查这个 hashtable，来看堆上是否已经存在一个一模一样的char数组。
+- 如果存在，string对象会被调整引用那个数组，释放对原来的数组的引用，最终会被垃圾收集器回收掉。
+- 如果查找失败，char数组会被插入到 hashtable,这样以后的时候就可以共享这个数组了
+
+命令行选项
+
+- UseStringDeduplication(bool)：开启 string去重，默认是不开启的，需要手动开启。
+- PrintStringDeduplicationStatistics(bool)：打印详细的去重统计信息
+- StringDeduplicationageThreshold(uintx)：达到这个年龄的 String对象被认为是去重的候选对象
 
 1
 
