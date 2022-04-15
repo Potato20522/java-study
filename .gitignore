@@ -67,3 +67,4 @@ fabric.properties
 target
 .idea
 node_modules
+.obsidian
