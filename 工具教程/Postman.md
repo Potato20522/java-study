@@ -42,7 +42,7 @@ Postman下载Postman分为 **Postman native app**和 Postman Chrome appp两个�
 
 接口收发包
 
-![image-20201030142437434](Postman.assets/image-20201030142437434.png)
+![image-20201030142437434](img/Postman.assets/image-20201030142437434.png)
 
 ### 头域操作
 

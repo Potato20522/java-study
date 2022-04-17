@@ -1,4 +1,4 @@
-![image-20200811164930868](Git.assets/image-20200811164930868.png)
+![image-20200811164930868](img/Git.assets/image-20200811164930868.png)
 
 # 1.版本控制
 
@@ -16,11 +16,11 @@
 
 团队内协作：
 
-![image-20200811165302373](Git.assets/image-20200811165302373.png)
+![image-20200811165302373](img/Git.assets/image-20200811165302373.png)
 
 跨团队协作：
 
-![image-20200811165425208](Git.assets/image-20200811165425208.png)
+![image-20200811165425208](img/Git.assets/image-20200811165425208.png)
 
 # 2.Git命令行操作
 
@@ -31,9 +31,9 @@
 - 命令：git init
 - 效果：
 
-![image-20200811165953803](Git.assets/image-20200811165953803.png)
+![image-20200811165953803](img/Git.assets/image-20200811165953803.png)
 
-![image-20200811170106114](Git.assets/image-20200811170106114.png)
+![image-20200811170106114](img/Git.assets/image-20200811170106114.png)
 
 注意：.git目录中存放的是本地库相关的子目录和文件，不要删除，也不要胡乱修改
 
@@ -51,12 +51,12 @@
     - git config user.name tom_pro
     - git config user.email goodMorning_pro@qq.com
     - 信息保存位置：./.git/config文件
-    - ![image-20200811171439303](Git.assets/image-20200811171439303.png)
+    - ![image-20200811171439303](img/Git.assets/image-20200811171439303.png)
   - 系统用户级别：登录当前操作系统的用户范围，范围更大，默认的
     - git config --global user.name tom_pro
     - git config --global user.email goodMorning_pro@qq.com
     - 信息保存位置：
-    - ![image-20200811171627194](Git.assets/image-20200811171627194.png)
+    - ![image-20200811171627194](img/Git.assets/image-20200811171627194.png)
   - 优先级
     - 就近原则：项目级别优先于系统用户级别，二者都有时是采用项目级别的签名
     - 如果只有系统用户级别的前面，就以系统用户级别的签名为准
@@ -82,19 +82,19 @@
 ### 2.3.4查看历史记录
 
 - git log
-- ![image-20200811191801692](Git.assets/image-20200811191801692.png)
+- ![image-20200811191801692](img/Git.assets/image-20200811191801692.png)
 
 - 多屏显示控制方式：
   - 空格向下翻页
   - b 向上翻页
   - q 退出
 - git log --pretty=oneline
-  - ![image-20200811192227005](Git.assets/image-20200811192227005.png)
+  - ![image-20200811192227005](img/Git.assets/image-20200811192227005.png)
 - git log --oneline
-  - ![image-20200811192239866](Git.assets/image-20200811192239866.png)
+  - ![image-20200811192239866](img/Git.assets/image-20200811192239866.png)
 - git reflog 
   - HEAD@{移动到当前版本需要多少步}
-  - ![image-20200811192418442](Git.assets/image-20200811192418442.png)
+  - ![image-20200811192418442](img/Git.assets/image-20200811192418442.png)
 
 ### 2.3.5前进后退
 
@@ -157,7 +157,7 @@
 
 在版本控制过程中，使用多条线同时推进多个任务。
 
-![版本控制](Git.assets/版本控制.png)
+![版本控制](img/Git.assets/版本控制.png)
 
 ### 2.4.2分支的好处
 
@@ -192,7 +192,7 @@
 
   - 冲突的表现
 
-    - ![image-20200811200852438](Git.assets/image-20200811200852438.png)
+    - ![image-20200811200852438](img/Git.assets/image-20200811200852438.png)
 
     - 冲突的解决
 
@@ -218,7 +218,7 @@
 Git 底层采用的是 **SHA-1** 算法。
 哈希算法可以被用来验证文件。原理如下图所示：
 
-![image-20200811201801158](Git.assets/image-20200811201801158.png)
+![image-20200811201801158](img/Git.assets/image-20200811201801158.png)
 
 Git 就是靠这种机制来从根本上保证数据完整性的。
 
@@ -228,7 +228,7 @@ Git 就是靠这种机制来从根本上保证数据完整性的。
 
 以文件变更列表的方式存储信息。这类系统将它们保存的信息看作是一组基本文件和每个文件随时间逐步累积的差异。
 
-![image-20200811202030663](Git.assets/image-20200811202030663.png)
+![image-20200811202030663](img/Git.assets/image-20200811202030663.png)
 
 ### 3.2.2  **Git** **的文件管理机制**
 
@@ -237,31 +237,31 @@ Git 把数据看作是小型文件系统的一组快照。每次提交更新时 
 Git 不再重新存储该文件，而是只保留一个链接指向之前存储的文件。所以 Git 的
 工作方式可以称之为快照流。
 
-![image-20200811202117813](Git.assets/image-20200811202117813.png)
+![image-20200811202117813](img/Git.assets/image-20200811202117813.png)
 
 ### 3.2.3  **Git** **文件管理机制细节**
 Git 的“提交对象”
 
-![image-20200811202250285](Git.assets/image-20200811202250285.png)
+![image-20200811202250285](img/Git.assets/image-20200811202250285.png)
 提交对象及其父对象形成的链条
 
-![image-20200811202348851](Git.assets/image-20200811202348851.png)
+![image-20200811202348851](img/Git.assets/image-20200811202348851.png)
 
 ## 3.3  **Git** **分支管理机制**
 
 ### 3.3.1  **分支的创建**
 
-![image-20200811202532555](Git.assets/image-20200811202532555.png)
+![image-20200811202532555](img/Git.assets/image-20200811202532555.png)
 
 ### 3.3.2分支的切换
 
-![image-20200811202602143](Git.assets/image-20200811202602143.png)
+![image-20200811202602143](img/Git.assets/image-20200811202602143.png)
 
-![image-20200811202717155](Git.assets/image-20200811202717155.png)
+![image-20200811202717155](img/Git.assets/image-20200811202717155.png)
 
-![image-20200811202814623](Git.assets/image-20200811202814623.png)
+![image-20200811202814623](img/Git.assets/image-20200811202814623.png)
 
-![image-20200811202830817](Git.assets/image-20200811202830817.png)
+![image-20200811202830817](img/Git.assets/image-20200811202830817.png)
 
 # 4.GitHub
 
@@ -277,13 +277,13 @@ git remote -v 查看当前所有远程地址别名
 
 git remote add [别名] [远程地址]
 
-![image-20200811205240044](Git.assets/image-20200811205240044.png)
+![image-20200811205240044](img/Git.assets/image-20200811205240044.png)
 
 ## 4.3推送
 
 git push [别名] [分支名]
 
-![image-20200811205227773](Git.assets/image-20200811205227773.png)
+![image-20200811205227773](img/Git.assets/image-20200811205227773.png)
 
 
 
@@ -293,7 +293,7 @@ git push [别名] [分支名]
 
   - git clone[远程地址]
 
-  - ![image-20200811205329549](Git.assets/image-20200811205329549.png)
+  - ![image-20200811205329549](img/Git.assets/image-20200811205329549.png)
 
   - 效果
 
@@ -374,7 +374,7 @@ github知名度很高但是访问速度很慢，
 
 注意，可能会导入失败，但github仓库仍然会创建成功，这时可以在github仓库页面，找到如下按钮：
 
-![image-20220123150129184](Git.assets/image-20220123150129184.png)
+![image-20220123150129184](img/Git.assets/image-20220123150129184.png)
 
 然后输入gitee仓库地址，再次进行导入
 
@@ -410,11 +410,11 @@ github知名度很高但是访问速度很慢，
 
 只需要commit一次、push一次就行
 
-![image-20220123154226713](Git.assets/image-20220123154226713.png)
+![image-20220123154226713](img/Git.assets/image-20220123154226713.png)
 
 注意：这种方式，在一般的git工具里，只会显示最后一条url：
 
-![image-20220123154947298](Git.assets/image-20220123154947298.png)
+![image-20220123154947298](img/Git.assets/image-20220123154947298.png)
 
 但是用命令行就可以看到完整的：
 
@@ -452,11 +452,11 @@ git仓库添加多个远程地址
 
 菜单栏选择Git，选择远程管理,刚打开是这样：
 
-![image-20220123153458744](Git.assets/image-20220123153458744.png)
+![image-20220123153458744](img/Git.assets/image-20220123153458744.png)
 
 然后，写成这样
 
-![image-20220123155224501](Git.assets/image-20220123155224501.png)
+![image-20220123155224501](img/Git.assets/image-20220123155224501.png)
 
 这样的话.git/config文件就变成这样：
 
