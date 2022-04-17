@@ -514,7 +514,7 @@ HelloWorld程序，进入.class所在目录，执行反编译：javap -v HelloWo
 
 ![image-20200829194346361](JVM快速入门.assets/image-20200829194346361.png)
 
-通过#2  #3  #4来去常量池里查找
+通过#2  #3  #4 来去常量池里查找
 
 ![image-20200829194719020](JVM快速入门.assets/image-20200829194719020.png)
 
