@@ -1,4 +1,4 @@
-package com.potato;
+package com.potato.ch01;
 
 public class IntegerTest {
     public static void main(String[] args) {

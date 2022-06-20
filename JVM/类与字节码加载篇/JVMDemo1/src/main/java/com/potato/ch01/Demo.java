@@ -1,4 +1,4 @@
-package com.potato;
+package com.potato.ch01;
 
 public class Demo {
     private int num = 1;
