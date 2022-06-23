@@ -35,4 +35,22 @@ public class LoadAndStoreTest {
         double c2 = 2;
         Date d = null;
     }
+
+    //3.出栈装入局部装入局部变量表指令
+    public void store(int k, double d) {
+        int m = k + 2;
+        long l = 12;
+        String str = "atguigu";
+        float f = 10.0F;
+        d = 10;
+    }
+
+    public void foo(long l, float f) {
+        {
+            int i = 0;
+        }
+        {
+            String s = "Hello,World";
+        }
+    }
 }
