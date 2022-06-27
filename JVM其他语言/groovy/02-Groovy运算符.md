@@ -268,13 +268,83 @@ constructorRefs()
 
 # 正则表达式运算符
 
+## 模式运算符
+
+使用符号：~ 加斜杠包起来，来创建一个java.util.regex.Pattern.Pattern对象
+
+```groovy
+import java.util.regex.Pattern
+
+def p = ~/foo/
+assert p instanceof Pattern
+```
+
+除了使用斜杠包起来，还可以使用单引号、双引号、$、\$加大括号抱起来
+
+```groovy
+p = ~'foo'                                                        
+p = ~"foo"                                                        
+p = ~$/dollar/slashy $ string/$          //无需转义，直接使用 $和/                        
+p = ~"${pattern}"  //还可使用GString
+```
+
+## 查找运算符
+
+使用=~ 创建java.util.regex.Matcher对象
+
+```groovy
+def text = "some text to match"
+def m = text =~ /match/                                           
+assert m instanceof Matcher                                       
+if (!m) {                                                         
+    throw new RuntimeException("Oops, text not found!")
+}
+```
+
+## 匹配运算符
+
+使用==~ 来创建ava.util.regex.Matcher对象
+
+```groovy
+m = text ==~ /match/                                              
+assert m instanceof Boolean                                       
+if (m) {                                                          
+    throw new RuntimeException("Should not reach that point!")
+}
+```
+
+## 对比
+
+当涉及单个完全匹配时，使用match，否则使用find
+
+```groovy
+assert 'two words' ==~ /\S+\s+\S+/
+assert 'two words' ==~ /^\S+\s+\S+$/         
+assert !(' leading space' ==~ /\S+\s+\S+/)   
+
+def m1 = 'two words' =~ /^\S+\s+\S+$/
+assert m1.size() == 1                          
+def m2 = 'now three words' =~ /^\S+\s+\S+$/    
+assert m2.size() == 0                          
+def m3 = 'now three words' =~ /\S+\s+\S+/
+assert m3.size() == 1                          
+assert m3[0] == 'now three'
+def m4 = ' leading space' =~ /\S+\s+\S+/
+assert m4.size() == 1                          
+assert m4[0] == 'leading space'
+def m5 = 'and with four words' =~ /\S+\s+\S+/
+assert m5.size() == 2                          
+assert m5[0] == 'and with'
+assert m5[1] == 'four words'
+```
+
 # 其他
 
-## 展开运算符
+## 展开运算符：*
 
 Spread Operator
 
-Groovy中的展开运算符（*.）很有意思，它用于展开集合元素。
+Groovy中的展开运算符（*.）很有意思，它用于展开/传播集合元素。
 
 ```groovy
 class Car {
@@ -288,5 +358,392 @@ def cars = [
 def makes = cars*.make // 相当于访问了每一个元素的make
 assert makes == ['Peugeot', 'Renault'] // 结果还是一个列表
 
+```
+
+### null-safe
+
+展开运算符是null-safe的，不会抛空指针异常
+
+```groovy
+cars = [
+        new Car(make: 'Peugeot', model: '508'),
+        null,
+        new Car(make: 'Renault', model: 'Clio')]
+assert cars*.make == ['Peugeot', null, 'Renault']
+assert null*.make == null
+```
+
+### 适用于Iterable
+
+展开运算符适用于任何实现了Iterable的对象
+
+```groovy
+class Component {
+    Long id
+    String name
+}
+class CompositeObject implements Iterable<Component> {
+    def components = [
+            new Component(id: 1, name: 'Foo'),
+            new Component(id: 2, name: 'Bar')]
+
+    @Override
+    Iterator<Component> iterator() {
+        components.iterator()
+    }
+}
+def composite = new CompositeObject()
+assert composite*.id == [1,2]
+assert composite*.name == ['Foo','Bar']
+```
+
+### 嵌套
+
+展开运算符可以嵌套
+
+```groovy
+class Make {
+    String name
+    List<Model> models
+}
+
+@Canonical
+class Model {
+    String name
+}
+
+def cars = [
+    new Make(name: 'Peugeot',
+             models: [new Model('408'), new Model('508')]),
+    new Make(name: 'Renault',
+             models: [new Model('Clio'), new Model('Captur')])
+]
+
+def makes = cars*.name
+assert makes == ['Peugeot', 'Renault']
+
+def models = cars*.models*.name
+assert models == [['408', '508'], ['Clio', 'Captur']]
+assert models.sum() == ['408', '508', 'Clio', 'Captur'] // flatten one level
+assert models.flatten() == ['408', '508', 'Clio', 'Captur'] // flatten all levels (one in this case)
+```
+
+对于集合嵌套的情况，使用collectNested方法而不是 *.
+
+```groovy
+class Car {
+    String make
+    String model
+}
+def cars = [
+   [
+       new Car(make: 'Peugeot', model: '408'),
+       new Car(make: 'Peugeot', model: '508')
+   ], [
+       new Car(make: 'Renault', model: 'Clio'),
+       new Car(make: 'Renault', model: 'Captur')
+   ]
+]
+def models = cars.collectNested{ it.model }
+assert models == [['408', '508'], ['Clio', 'Captur']]
+```
+
+### 展开方法参数
+
+有如下函数：
+
+```groovy
+int function(int x, int y, int z) {
+    x*y+z
+}
+```
+
+有一个变量：
+
+```groovy
+def args = [4,5,6]
+```
+
+使用展开运算符，调用该方法
+
+```groovy
+assert function(*args) == 26
+```
+
+还可以混着用：
+
+```groovy
+args = [4]
+assert function(*args,5,6) == 26
+```
+
+### 用于列表中的元素
+
+```groovy
+def items = [4,5]                      
+def list = [1,2,3,*items,6]            
+assert list == [1,2,3,4,5,6]   
+```
+
+### 展开Map
+
+```groovy
+def m1 = [c:3, d:4]
+def map = [a:1, b:2, *:m1]
+assert map == [a:1, b:2, c:3, d:4]
+//和位置有关
+def m2 = [c:3, d:4]
+def map2 = [a:1, b:2, *:m2, d: 8] //d: 8覆盖了前面的d:4
+assert map2 == [a:1, b:2, c:3, d:8]
+```
+
+## 范围运算符 ..
+
+Range operator
+
+使用..可以定义一个范围：
+
+```groovy
+def range = 0..5    //groovy.lang.IntRange类型                                
+assert (0..5).collect() == [0, 1, 2, 3, 4, 5]       
+assert (0..<5).collect() == [0, 1, 2, 3, 4]         
+assert (0<..5).collect() == [1, 2, 3, 4, 5]         
+assert (0<..<5).collect() == [1, 2, 3, 4]           
+assert (0..5) instanceof List                       
+assert (0..5).size() == 6                           
+```
+
+不仅仅是数字，实现了Comparable接口的对象都可以使用范围运算符
+
+```groovy
+assert ('a'..'d').collect() == ['a','b','c','d']
+```
+
+## 飞船运算符<==>(compareTo)
+
+Spaceship operator
+
+`<==>`像不像一个宇宙飞船？相当于调用`compareTo`方法：
+
+```groovy
+assert (1 <=> 1) == 0
+assert (1 <=> 2) == -1
+assert (2 <=> 1) == 1
+assert ('a' <=> 'z') == -1
+```
+
+## 下标运算符[下标]
+
+Subscript operator
+
+不仅仅是数组，List对象也可以使用中括号加下标访问了
+
+```groovy
+def list = [0,1,2,3,4]
+assert list[2] == 2 //取值，实际上调用了getAt方法                        
+list[2] = 4   //赋值，实际上调用了putAt方法                                    
+assert list[0..2] == [0,1,4]                
+list[0..2] = [6,6,6]                        
+assert list == [6,6,6,3,4]
+```
+
+下标运算符中的取值，实际上调用了getAt方法 ，赋值，实际上调用了putAt方法，所以，只要对象中重写了这两个方法，也能对改对象使用下标运算符。
+
+```groovy
+class User {
+    Long id
+    String name
+    def getAt(int i) {                                             
+        switch (i) {
+            case 0: return id
+            case 1: return name
+        }
+        throw new IllegalArgumentException("No such element $i")
+    }
+    void putAt(int i, def value) {                                 
+        switch (i) {
+            case 0: id = value; return
+            case 1: name = value; return
+        }
+        throw new IllegalArgumentException("No such element $i")
+    }
+}
+def user = new User(id: 1, name: 'Alex')                           
+assert user[0] == 1                                                
+assert user[1] == 'Alex'                                           
+user[1] = 'Bob'                                                    
+assert user.name == 'Bob'         
+```
+
+## 安全索引运算符 ?[下标]
+
+写法：问号+下标 ， 这样就可以应对null了
+
+```groovy
+tring[] array = ['a', 'b']
+assert 'b' == array?[1]      // get using normal array index
+array?[1] = 'c'              // set using normal array index
+assert 'c' == array?[1]
+
+array = null
+assert null == array?[1]     // return null for all index values
+array?[1] = 'c'              // quietly ignore attempt to set value
+assert null == array?[1]
+
+def personInfo = [name: 'Daniel.Sun', location: 'Shanghai']
+assert 'Daniel.Sun' == personInfo?['name']      // get using normal map index
+personInfo?['name'] = 'sunlan'                  // set using normal map index
+assert 'sunlan' == personInfo?['name']
+
+personInfo = null
+assert null == personInfo?['name']              // return null for all map values
+personInfo?['name'] = 'sunlan'                  // quietly ignore attempt to set value
+assert null == personInfo?['name']
+```
+
+## 成员运算符 in
+
+in相当于inCase方法，当用在列表上时，相当于调用列表的contains方法：
+
+```groovy
+def list = ['Grace','Rob','Emmy']
+assert ('Emmy' in list)     
+```
+
+## ==运算符（调用了equals）
+
+Identity operator
+
+java中的==是比较对象是否是同一个，即内存地址
+
+而groovy中的==直接是调用equals方法进行比较
+
+groovy中想要比较对象是否是同一个，使用is关键字就行
+
+```groovy
+def list1 = ['Groovy 1.8','Groovy 2.0','Groovy 2.3']        
+def list2 = ['Groovy 1.8','Groovy 2.0','Groovy 2.3']        
+assert list1 == list2                                       
+assert !list1.is(list2)   
+```
+
+## 强制转换运算符 as
+
+Coercion operator
+
+下面的强制转换，运行时会抛异常：**ClassCastException**
+
+```groovy
+Integer x = 123
+String s = (String) x    
+```
+
+可以使用强制转换运算符 as 来代替
+
+```groovy
+Integer x = 123
+String s = x as String      
+```
+
+当一个对象被强制转换为另一个对象时，除非目标类型与源类型相同，否则强制将**返回一个新对象**。强制规则因源类型和目标类型而异，如果未找到转换规则，则强制规则可能会失败。自定义转换规则可以通过以下方法实现：**asType**：
+
+```groovy
+class Identifiable {
+    String name
+}
+class User {
+    Long id
+    String name
+    def asType(Class target) {                                              
+        if (target == Identifiable) {
+            return new Identifiable(name: name)
+        }
+        throw new ClassCastException("User cannot be coerced into $target")
+    }
+}
+def u = new User(name: 'Xavier')                                            
+def p = u as Identifiable                                                   
+assert p instanceof Identifiable                                            
+assert !(p instanceof User)     
+```
+
+## 钻石运算符<>
+
+Diamond operator
+
+和java中一样，用于泛型
+
+```groovy
+List<String> strings = new LinkedList<>()
+```
+
+## call运算符
+
+Call operator
+
+```groovy
+class MyCallable {
+    int call(int x) { //隐式实现了java.util.concurrent.Callable
+        2*x
+    }
+}
+
+def mc = new MyCallable()
+assert mc.call(2) == 4          
+assert mc(2) == 4  //简化调用
+```
+
+# 运算符优先级
+
+| Level | Operator(s)                                                  | Name(s)                                                      |
+| :---- | :----------------------------------------------------------- | :----------------------------------------------------------- |
+| 1     | `new`  `()`                                                  | object creation, explicit parentheses                        |
+|       | `()`  `{}`  `[]`                                             | method call, closure, literal list/map                       |
+|       | `.`  `.&`  `.@`                                              | member access, method closure, field/attribute access        |
+|       | `?.`  `*`  `*.`  `*:`                                        | safe dereferencing, spread, spread-dot, spread-map           |
+|       | `~`  `!`  `(type)`                                           | bitwise negate/pattern, not, typecast                        |
+|       | `[]`  `?[]`  `++`  `--`                                      | list/map/array (safe) index, post inc/decrement              |
+| 2     | `**`                                                         | power                                                        |
+| 3     | `++`  `--`  `+`  `-`                                         | pre inc/decrement, unary plus, unary minus                   |
+| 4     | `*`  `/`  `%`                                                | multiply, div, remainder                                     |
+| 5     | `+`  `-`                                                     | addition, subtraction                                        |
+| 6     | `\<\<`  `>>`  `>>>`  `..`  `..\<`                            | left/right (unsigned) shift, inclusive/exclusive range       |
+| 7     | `\<`  `<=`  `>`  `>=`  `in` &0#160; `!in`  `instanceof`  `!instanceof`  `as` | less/greater than/or equal, in, not in, instanceof, not instanceof, type coercion |
+| 8     | `==`  `!=`  `<=>`  `===`  `!==`                              | equals, not equals, compare to, identical to, not identical to |
+|       | `=~`  `==~`                                                  | regex find, regex match                                      |
+| 9     | `&`                                                          | binary/bitwise and                                           |
+| 10    | `^`                                                          | binary/bitwise xor                                           |
+| 11    | `|`                                                          | binary/bitwise or                                            |
+| 12    | `&&`                                                         | logical and                                                  |
+| 13    | `||`                                                         | logical or                                                   |
+| 14    | `? :`                                                        | ternary conditional                                          |
+|       | `?:`                                                         | elvis operator                                               |
+| 15    | `=`  `**=`  `*=`  `/=`  `%=`  `+=`  `-=`  `\<<=`  `>>=`  `>>>=`  `&=`  `^=`  `|=`   `?=` | various assignments                                          |
+
+# 运算符重载
+
+Groovy中支持运算符重载，其实也就是重写一下实现约定好的方法：
+
+比如：加法重载
+
+```groovy
+class Bucket {
+    int size
+
+    Bucket(int size) { this.size = size }
+
+    Bucket plus(Bucket other) {
+        return new Bucket(this.size + other.size)
+    }
+    Bucket plus(int capacity) {
+        return new Bucket(this.size + capacity)
+    }
+}
+
+def b1 = new Bucket(4)
+def b2 = new Bucket(11)
+assert (b1 + b2).size == 15 //plus(Bucket other)
+
+assert (b1 + 11).size == 15 //plus(int capacity)
 ```
 
