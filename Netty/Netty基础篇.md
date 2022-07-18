@@ -23,7 +23,7 @@ ByteBuffer buffer = ByteBuffer.allocate(16);
 
 ​		无论读写，均需要初始化一个ByteBuffer容器。如上所述，ByteBuffer其实就是对byte数组的一种封装，所以可以使用静态方法`wrap(byte[] data)`手动封装数组，也可以通过另一个静态的`allocate(int size)`方法初始化指定长度的ByteBuffer。初始化后，ByteBuffer的position就是0；其中的数据就是初始化为0的字节数组；limit = capacity = 字节数组的长度；用户还未自定义标记位置，所以mark = -1，即undefined状态。下图就表示初始化了一个容量为16个字节的ByteBuffer，其中每个字节用两位16进制数表示：
 
-![image-20201130193656194](Netty基础篇.assets/image-20201130193656194.png)
+![image-20201130193656194](img/Netty基础篇.assets/image-20201130193656194.png)
 
 #### 从ByteBuffer中读数据
 
@@ -52,7 +52,7 @@ putDouble(double val);
 
 ​		执行这些写入方法之后，就会以当前的position位置作为起始位置，写入对应长度的数据，并在写入完毕之后将position向后移动对应的长度。下图就表示了分别向ByteBuffer中写入1个字节的byte数据和4个字节的Integer数据的结果：
 
-![image-20201130194000143](Netty基础篇.assets/image-20201130194000143.png)
+![image-20201130194000143](img/Netty基础篇.assets/image-20201130194000143.png)
 
 ​		但是当想要写入的数据长度大于ByteBuffer当前剩余的长度时，则会抛出BufferOverflowException异常，剩余长度的定义即为limit与position之间的差值（即 limit - position）。如上述例子中，若再执行`buffer.put(new byte[12]);`就会抛出BufferOverflowException异常，因为剩余长度为11。可以通过调用`ByteBuffer.remaining();`查看该ByteBuffer当前的剩余可用长度。
 
@@ -60,7 +60,7 @@ putDouble(double val);
 
 ​		在实际应用中，往往是调用`SocketChannel.read(ByteBuffer dst)`，从SocketChannel中读入数据至指定的ByteBuffer中。由于ByteBuffer常常是非阻塞的，所以该方法的返回值即为实际读取到的字节长度。假设实际读取到的字节长度为 n，ByteBuffer剩余可用长度为 r，则二者的关系一定满足：0 <= n <= r。继续接上述的例子，假设调用read方法，从SocketChannel中读入了4个字节的数据，则buffer的情况如下：
 
-![image-20201130194909181](Netty基础篇.assets/image-20201130194909181.png)
+![image-20201130194909181](img/Netty基础篇.assets/image-20201130194909181.png)
 
 #### 从ByteBuffer中读数据
 
@@ -118,7 +118,7 @@ for (int i = off; i < off + len; i++)
 
 此处应注意读取数据后，已读取的数据也不会被清零。下图即为从例子中连续读取1个字节的byte和4个字节的int数据：
 
-![image-20201130195955775](Netty基础篇.assets/image-20201130195955775.png)
+![image-20201130195955775](img/Netty基础篇.assets/image-20201130195955775.png)
 
 此处同样要注意，当想要读取的数据长度大于ByteBuffer剩余的长度时，则会抛出 BufferUnderflowException 异常。如上例中，若再调用`buffer.getLong()`就会抛出 BufferUnderflowException 异常，因为 remaining 仅为4。
 
@@ -224,11 +224,11 @@ public static void main(String[] args) throws IOException {
 
 ​		传统的CS模式，为每个请求建立一个线程，增大开销。即便采用线程池后，还是有缺陷，如下图：
 
-![image-20201130202441037](Netty基础篇.assets/image-20201130202441037.png)
+![image-20201130202441037](img/Netty基础篇.assets/image-20201130202441037.png)
 
 ​		NIO中非阻塞I/O采用了基于Reactor模式的工作方式，I/O调用不会被阻塞，而是注册感兴趣的特定I/O事件，如可读数据到达、新的套接字连接等，在发生特定事件时，系统再通知我们。NIO中实现非阻塞I/O的核心对象是Selector，Selector是注册各种I/O事件的地方，而且当那些事件发生时，就是Seleetor告诉我们所发生的事件，如下图所示  
 
-![image-20201130202612117](Netty基础篇.assets/image-20201130202612117.png)
+![image-20201130202612117](img/Netty基础篇.assets/image-20201130202612117.png)
 
 ​		当有读或写等任何注册的事件发生时，可以从Selector中获得相应的SelectionKey，同时从SelectionKey中可以找到
 发生的事件和该事件所发生的具体的SelectableChannel，以获得客户端发送过来的数据。  
@@ -392,7 +392,7 @@ public class NIOServerDemo {
 
 ​		NIO提供了多种通道对象，所有的通道对象都实现了Channel接口。它们之间的继承关系如下图所示  
 
-![image-20201130205741324](Netty基础篇.assets/image-20201130205741324.png)
+![image-20201130205741324](img/Netty基础篇.assets/image-20201130205741324.png)
 
 #### NIO读取数据
 
@@ -447,7 +447,7 @@ public void test() throws IOException{
 
 ​		阻 塞 I/O 在 调 用InputStream.read()方法时是阻塞的，它会一直等到数据到来（或超时）时才会返回；同样，在调用ServerSocket.accept()方法时，也会一直阻塞到有客户端连接才会返回，每个客户端连接成功后，服务端都会启动一个线程去处理该客户端的请求。**阻塞I/O的通信模型**示意如下图所示。  
 
-![image-20201130210940138](Netty基础篇.assets/image-20201130210940138.png)
+![image-20201130210940138](img/Netty基础篇.assets/image-20201130210940138.png)
 
 **非阻塞I/O**  
 
@@ -949,7 +949,7 @@ public class TDResponse {
 
 BIO
 
-![image-20201202081608769](Netty基础篇.assets/image-20201202081608769.png)
+![image-20201202081608769](img/Netty基础篇.assets/image-20201202081608769.png)
 
 - 序列化方式存在弊端  
   - Java对象的序列化无法开语言使用
@@ -993,7 +993,7 @@ Netty客户端通信
 
 Netty ByteBuf的实现
 
-![image-20201202083430876](Netty基础篇.assets/image-20201202083430876.png)
+![image-20201202083430876](img/Netty基础篇.assets/image-20201202083430876.png)
 
 ### 高效的Reactor线程模型
 
@@ -1199,7 +1199,7 @@ NioEventLoop 的 启 动 ， 其 实 就 是NioEventLoop所绑定的本地Java�
 
 在 Netty 中 每 个 Channel 都 有 且 仅 有 一 个ChannelPipeline与之对应  ,双向链表
 
-![image-20201202094903988](Netty基础篇.assets/image-20201202094903988.png)
+![image-20201202094903988](img/Netty基础篇.assets/image-20201202094903988.png)
 
 ​		一个Channel包含了一个ChannelPipeline，而ChannelPipeline中又维护了一个由ChannelHandlerContext组成的双向
 链表。这个链表的头是HeadContext，链表的尾是TailContext，并且每个ChannelHandlerContext中又关联着一个ChannelHandler。

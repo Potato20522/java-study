@@ -202,7 +202,7 @@ public class BasicBuffer {
 
 ## NIO 三大核心原理
 
-![image-20201005135925652](Netty.assets/image-20201005135925652.png)
+![image-20201005135925652](img/Netty.assets/image-20201005135925652.png)
 
 1) 每个channel 都会对应一个Buffer
 2) **Selector 对应一个线程**， **一个线程对应多个channel(连接)**
@@ -219,7 +219,7 @@ public class BasicBuffer {
 
 缓冲区（Buffer）：缓冲区本质上是一个可以读写数据的内存块，可以理解成是一个**容器对象(含数组)**，该对象提供了一组方法，可以更轻松地使用内存块，，缓冲区对象内置了一些机制，能够跟踪和记录缓冲区的状态变化情况。Channel 提供从文件、网络读取数据的渠道，但是读取或写入的数据都必须经由 Buffer
 
-![image-20201005140409161](Netty.assets/image-20201005140409161.png)
+![image-20201005140409161](img/Netty.assets/image-20201005140409161.png)
 
 ### Buffer 类及其子类
 
@@ -335,7 +335,7 @@ public abstract class ByteBuffer {
 - 通道可以实现异步读写数据
 - 通道可以从缓冲读数据，也可以写数据到缓冲:
 
-![image-20201005141800439](Netty.assets/image-20201005141800439.png)
+![image-20201005141800439](img/Netty.assets/image-20201005141800439.png)
 
 2) BIO 中的 stream 是单向的，例如 FileInputStream 对象只能进行读取数据的操作，而 NIO 中的通道(Channel)是双向的，可以读操作，也可以写操作。
 
@@ -362,7 +362,7 @@ FileChannel主要用来对本地文件进行 IO 操作，常见的方法有
 
 #### 应用实例1-本地文件写数据
 
-![image-20201101204857659](Netty.assets/image-20201101204857659.png)
+![image-20201101204857659](img/Netty.assets/image-20201101204857659.png)
 
 实例要求:
 1) 使用前面学习后的ByteBuffer(缓冲) 和 FileChannel(通道)， 将 "hello,尚硅谷" 写入到file01.txt 中
@@ -401,7 +401,7 @@ public class NIOFileChannel01 {
 
 #### 应用实例2-本地文件读数据
 
-![image-20201101204913752](Netty.assets/image-20201101204913752.png)
+![image-20201101204913752](img/Netty.assets/image-20201101204913752.png)
 
 实例要求:
 1) 使用前面学习后的ByteBuffer(缓冲) 和 FileChannel(通道)， 将 file01.txt 中的数据读
@@ -453,7 +453,7 @@ hello,ok
 
 3) 代码演示
 
-![image-20201101205100925](Netty.assets/image-20201101205100925.png)
+![image-20201101205100925](img/Netty.assets/image-20201101205100925.png)
 
 ```java
 public static void main(String[] args) throws Exception {
@@ -660,7 +660,7 @@ public static void main(String[] args) throws Exception {
 
 ### Selector 示意图和特点说明
 
-![image-20201101215942578](Netty.assets/image-20201101215942578.png)
+![image-20201101215942578](img/Netty.assets/image-20201101215942578.png)
 
 1) Netty 的 IO 线程 NioEventLoop 聚合了 Selector(选择器，也叫多路复用器)，可以同时并发处理成百上千个客户端连接。
 
@@ -676,7 +676,7 @@ public static void main(String[] args) throws Exception {
 
 Selector 类是一个抽象类, 常用方法和说明如下:
 
-![image-20201101220127089](Netty.assets/image-20201101220127089.png)
+![image-20201101220127089](img/Netty.assets/image-20201101220127089.png)
 
 ### 注意事项
 
@@ -695,7 +695,7 @@ Selector 类是一个抽象类, 常用方法和说明如下:
 
 NIO 非阻塞 网络编程相关的(Selector、SelectionKey、ServerScoketChannel 和 SocketChannel) 关系梳理图
 
-![image-20201101222015181](Netty.assets/image-20201101222015181.png)
+![image-20201101222015181](img/Netty.assets/image-20201101222015181.png)
 
 对上图的说明:
 
@@ -862,14 +862,14 @@ public static final int OP_ACCEPT = 1 << 4;
 
 2) SelectionKey 相关方法
 
-![image-20201103002830078](Netty.assets/image-20201103002830078.png)
+![image-20201103002830078](img/Netty.assets/image-20201103002830078.png)
 
 ## ServerSocketChannel
 
 1) ServerSocketChannel **在服务器端监听新的客户端 Socket 连接**
 2) 相关方法如下
 
-![image-20201103003121913](Netty.assets/image-20201103003121913.png)
+![image-20201103003121913](img/Netty.assets/image-20201103003121913.png)
 
 ## SocketChannel
 
@@ -877,7 +877,7 @@ public static final int OP_ACCEPT = 1 << 4;
 
 2) 相关方法如下
 
-![image-20201103003408014](Netty.assets/image-20201103003408014.png)
+![image-20201103003408014](img/Netty.assets/image-20201103003408014.png)
 
 ## NIO 网络编程应用实例-群聊系统
 
@@ -1141,13 +1141,13 @@ public class GroupChatClient {
 
 Java 传统 IO 和 网络编程的一段代码
 
-![image-20201103022457378](Netty.assets/image-20201103022457378.png)
+![image-20201103022457378](img/Netty.assets/image-20201103022457378.png)
 
 ### 传统 IO 模型
 
 4次拷贝，3次切换（内核态与用户态）
 
-![image-20201103023257200](Netty.assets/image-20201103023257200.png)
+![image-20201103023257200](img/Netty.assets/image-20201103023257200.png)
 
 DMA: direct memory access 直接内存拷贝(不使用 CPU)
 
@@ -1158,14 +1158,14 @@ DMA: direct memory access 直接内存拷贝(不使用 CPU)
 
 3次拷贝，3次切换
 
-![image-20201103023423418](Netty.assets/image-20201103023423418.png)
+![image-20201103023423418](img/Netty.assets/image-20201103023423418.png)
 
 
 
 3) 提示：**零拷贝从操作系统角度，是没有 cpu 拷贝**
 4) Linux 在 2.4 版本中，做了一些修改，避免了从**内核缓冲区**拷贝到 **Socket buffer** 的操作，直接拷贝到**协议栈**，从而再一次减少了数据拷贝。具体如下图和小结：
 
-![image-20201103023524267](Netty.assets/image-20201103023524267.png)
+![image-20201103023524267](img/Netty.assets/image-20201103023524267.png)
 
 5) 这里其实有 一次 cpu 拷贝
 kernel buffer -> socket buffer
@@ -1261,7 +1261,7 @@ public class NewIOClient {
 
 3) 目前 AIO 还没有广泛应用，Netty 也是基于 NIO, 而不是 AIO， 因此我们就不详解 AIO 了，有兴趣的同学可以 参 考 <<Java 新 一 代 网 络 编 程 模 型 AIO 原 理 及 Linux 系 统 AIO 介 绍 >>http://www.52im.net/thread-306-1-1.html
 
-![image-20201103030351993](Netty.assets/image-20201103030351993.png)
+![image-20201103030351993](img/Netty.assets/image-20201103030351993.png)
 
 # Netty 概述
 
@@ -1278,7 +1278,7 @@ public class NewIOClient {
 Netty is an asynchronous event-driven network application framework
 for rapid development of maintainable high performance protocol servers & clients
 
-![image-20201103031829284](Netty.assets/image-20201103031829284.png)
+![image-20201103031829284](img/Netty.assets/image-20201103031829284.png)
 
 ## Netty 的优点
 
@@ -1331,7 +1331,7 @@ Netty 对 JDK 自带的 NIO 的 API 进行了封装，解决了上述问题。
 1) 当并发数很大，就会创建大量的线程，占用很大系统资源
 2) 连接创建后，如果当前线程暂时没有数据可读，该线程会阻塞在 read 操作，造成线程资源浪费
 
-![image-20201103033250568](Netty.assets/image-20201103033250568.png)
+![image-20201103033250568](img/Netty.assets/image-20201103033250568.png)
 
 ## Reactor 模式
 
@@ -1341,13 +1341,13 @@ Netty 对 JDK 自带的 NIO 的 API 进行了封装，解决了上述问题。
 
 2) 基于**线程池复用**线程资源：不必再为每个连接创建线程，将连接完成后的业务处理任务分配给线程进行处理，**一个线程可以处理多个连接的业务**。
 
-![image-20201103033817004](Netty.assets/image-20201103033817004.png)
+![image-20201103033817004](img/Netty.assets/image-20201103033817004.png)
 
 ### I/O 复用结合线程池
 
 I/O 复用结合线程池，就是 Reactor 模式基本设计思想
 
-![image-20201103034011937](Netty.assets/image-20201103034011937.png)
+![image-20201103034011937](img/Netty.assets/image-20201103034011937.png)
 
 1) Reactor 模式，通过一个或多个输入同时传递给服务处理器的模式(基于事件驱动)
 
@@ -1373,7 +1373,7 @@ I/O 复用结合线程池，就是 Reactor 模式基本设计思想
 
 原理图，并使用 NIO 群聊系统验证
 
-![image-20201103051205798](Netty.assets/image-20201103051205798.png)
+![image-20201103051205798](img/Netty.assets/image-20201103051205798.png)
 
 1) Select 是前面 I/O 复用模型介绍的标准网络编程 API，可以实现应用程序通过一个阻塞对象监听多路连接请求
 2) Reactor 对象通过 Select 监控客户端请求事件，收到事件后通过 Dispatch 进行分发
@@ -1395,7 +1395,7 @@ I/O 复用结合线程池，就是 Reactor 模式基本设计思想
 
 ## 单 Reactor 多线程
 
-![image-20201103052006517](Netty.assets/image-20201103052006517.png)
+![image-20201103052006517](img/Netty.assets/image-20201103052006517.png)
 
 1) Reactor 对象通过 select 监控客户端请求事件, 收到事件后，通过 dispatch 进行分发
 
@@ -1419,7 +1419,7 @@ I/O 复用结合线程池，就是 Reactor 模式基本设计思想
 
 针对单 Reactor 多线程模型中，Reactor 在单线程中运行，高并发场景下容易成为性能瓶颈，可以让 Reactor 在多线程中运行
 
-![image-20201103051919135](Netty.assets/image-20201103051919135.png)
+![image-20201103051919135](img/Netty.assets/image-20201103051919135.png)
 
 1) Reactor 主线程 MainReactor 对象通过 select 监听连接事件, 收到事件后，通过 Acceptor 处理连接事件
 
@@ -1441,7 +1441,7 @@ I/O 复用结合线程池，就是 Reactor 模式基本设计思想
 
 Scalable IO in Java 对 Multiple Reactors 的原理
 
-![image-20201103052806154](Netty.assets/image-20201103052806154.png)
+![image-20201103052806154](img/Netty.assets/image-20201103052806154.png)
 
 1) 优点：父线程与子线程的数据交互简单职责明确，父线程只需要接收新连接，子线程完成后续的业务处理。
 2) 优点：父线程与子线程的数据交互简单，Reactor 主线程只需要把新连接传给子线程，子线程无需返回数据。
@@ -1469,7 +1469,7 @@ Reactor 模式具有如下的优点
 
 Netty 主要基于主从 Reactors 多线程模型（如图）做了一定的改进，其中主从 Reactor 多线程模型有多个 Reactor
 
-![image-20201103053659001](Netty.assets/image-20201103053659001.png)
+![image-20201103053659001](img/Netty.assets/image-20201103053659001.png)
 
 1) BossGroup 线程维护 Selector , 只关注 Accecpt
 
@@ -1479,11 +1479,11 @@ Netty 主要基于主从 Reactors 多线程模型（如图）做了一定的改�
 
 ### 工作原理示意图 2-进阶版
 
-![image-20201103053749058](Netty.assets/image-20201103053749058.png)
+![image-20201103053749058](img/Netty.assets/image-20201103053749058.png)
 
 ### 工作原理示意图-详细版
 
-![image-20201103053815431](Netty.assets/image-20201103053815431.png)
+![image-20201103053815431](img/Netty.assets/image-20201103053815431.png)
 
 1) Netty 抽象出两组线程池 BossGroup 专门负责接收客户端的连接, WorkerGroup 专门负责网络的读写
 
@@ -1907,11 +1907,11 @@ IO 操作结果
 
 ### 工作原理
 
-![image-20201127224113478](Netty.assets/image-20201127224113478.png)
+![image-20201127224113478](img/Netty.assets/image-20201127224113478.png)
 
 
 
-![image-20201127224125126](Netty.assets/image-20201127224125126.png)
+![image-20201127224125126](img/Netty.assets/image-20201127224125126.png)
 
 
 
@@ -2204,7 +2204,7 @@ ChannelFuture sync()//等待异步操作执行完毕
 
 3) ChannelHandler 及其实现类一览图(后)
 
-![image-20201129041457279](Netty.assets/image-20201129041457279.png)
+![image-20201129041457279](img/Netty.assets/image-20201129041457279.png)
 
 4) 我们经常需要自定义一个 Handler 类去继承 ChannelInboundHandlerAdapter，然后通过重写相应方法实现业务逻辑，我们接下来看看一般都需要重写哪些方法
 
@@ -2219,7 +2219,7 @@ ChannelPipeline 是一个重点：
 
 3) 在 Netty 中每个 Channel 都有且仅有一个 ChannelPipeline 与之对应，它们的组成关系如下
 
-![image-20201129041938066](Netty.assets/image-20201129041938066.png)
+![image-20201129041938066](img/Netty.assets/image-20201129041938066.png)
 
 4) 常用方法
 
@@ -2244,7 +2244,7 @@ Channelfuture writeand Flush( Object msg)//将数据写到 Channelpipeline中当
 
 
 
-![image-20201129051541218](Netty.assets/image-20201129051541218.png)
+![image-20201129051541218](img/Netty.assets/image-20201129051541218.png)
 
 ## ChannelOption
 
@@ -2252,7 +2252,7 @@ Channelfuture writeand Flush( Object msg)//将数据写到 Channelpipeline中当
 
 2) ChannelOption 参数如下:
 
-![image-20201129052018965](Netty.assets/image-20201129052018965.png)
+![image-20201129052018965](img/Netty.assets/image-20201129052018965.png)
 
 ## EventLoopGroup 和其实现类 NioEventLoopGroup
 
@@ -2262,7 +2262,7 @@ Channelfuture writeand Flush( Object msg)//将数据写到 Channelpipeline中当
 
 3) 通常一个服务端口即一个 ServerSocketChannel 对应一个 Selector 和一个 EventLoop 线程。BossEventLoop 负责接收客户端的连接并将 SocketChannel 交给 WorkerEventLoopGroup 来进行 IO 处理，如下图所示
 
-![image-20201129052220740](Netty.assets/image-20201129052220740.png)
+![image-20201129052220740](img/Netty.assets/image-20201129052220740.png)
 
 4) 常用方法
 public NioEventLoopGroup()，构造方法
@@ -2281,7 +2281,7 @@ public static ByteBuf copiedBuffer(CharSequence string,Charset charset);
 
 3) 举例说明 Unpooled 获取 Netty 的数据容器 ByteBuf 的基本使用 【案例演示】
 
-![image-20201129054741418](Netty.assets/image-20201129054741418.png)
+![image-20201129054741418](img/Netty.assets/image-20201129054741418.png)
 
 案例 1
 
@@ -2521,7 +2521,7 @@ public class GroupChatClientHandler extends SimpleChannelInboundHandler<String> 
 
 **私聊**
 
-![image-20201129230812531](Netty.assets/image-20201129230812531.png)
+![image-20201129230812531](img/Netty.assets/image-20201129230812531.png)
 
 ## Netty 心跳检测机制案例
 
@@ -2749,11 +2749,11 @@ public class MyTextWebSocketFrameHandler extends SimpleChannelInboundHandler<Tex
 
 <img src="Netty.assets/image-20201202223910742.png" alt="image-20201202223910742" style="zoom:67%;" />
 
-![image-20201202223943550](Netty.assets/image-20201202223943550.png)
+![image-20201202223943550](img/Netty.assets/image-20201202223943550.png)
 
 
 
-![image-20201202224041842](Netty.assets/image-20201202224041842.png)
+![image-20201202224041842](img/Netty.assets/image-20201202224041842.png)
 
 # Google Protobuf
 
@@ -2761,7 +2761,7 @@ public class MyTextWebSocketFrameHandler extends SimpleChannelInboundHandler<Tex
 
 2) codec(编解码器) 的组成部分有两个：decoder(解码器)和 encoder(编码器)。encoder 负责把业务数据转换成字节码数据，decoder 负责把字节码数据转换成业务数据
 
-![image-20201202224545958](Netty.assets/image-20201202224545958.png)
+![image-20201202224545958](img/Netty.assets/image-20201202224545958.png)
 
 ## Netty 本身的编码解码的机制和问题分析
 
@@ -2799,7 +2799,7 @@ ObjectDecoder，对 Java 对象进行解码
 8) 然后通过 protoc.exe 编译器根据.proto 自动生成.java 文件
 9) protobuf 使用示意图
 
-![image-20201202225537298](Netty.assets/image-20201202225537298.png)
+![image-20201202225537298](img/Netty.assets/image-20201202225537298.png)
 
 ## Protobuf 快速入门实例
 
@@ -3039,7 +3039,7 @@ pipeline.addLast("decoder",new ProtobufDecoder(MyDataInfo.MyMessage.getDefaultIn
 
 ## 解码器-ByteToMessageDecoder
 
-![image-20201203051107391](Netty.assets/image-20201203051107391.png)
+![image-20201203051107391](img/Netty.assets/image-20201203051107391.png)
 
 2) 由于不可能知道远程节点是否会一次性发送一个完整的信息，tcp 有可能出现粘包拆包的问题，这个类会对入站数据进行缓冲，直到它准备好被处理. 
 
@@ -3062,7 +3062,7 @@ public class ToIntegerDecoder extends ByteToMessageDecoder {
 
 decode 执行分析图
 
-![image-20201203063721939](Netty.assets/image-20201203063721939.png)
+![image-20201203063721939](img/Netty.assets/image-20201203063721939.png)
 
 ## Netty 的 handler 链的调用机制
 
@@ -3071,9 +3071,9 @@ decode 执行分析图
 客户端发送 long -> 服务器
 服务端发送 long -> 客户端
 
-![image-20201203175952843](Netty.assets/image-20201203175952843.png)
+![image-20201203175952843](img/Netty.assets/image-20201203175952843.png)
 
-![image-20201203180414363](Netty.assets/image-20201203180414363.png)
+![image-20201203180414363](img/Netty.assets/image-20201203180414363.png)
 
 不论解码器 handler 还是 编码器 handler 即接收的消息类型必须与待处理的消息类型一致，否则该 handler 不会被执行
 
@@ -3114,7 +3114,7 @@ public class MyByteToLongDecoder2 extends ReplayingDecoder<Void> {
 
 其它编码器
 
-![image-20201203180923207](Netty.assets/image-20201203180923207.png)
+![image-20201203180923207](img/Netty.assets/image-20201203180923207.png)
 
 ## Log4j 整合到 Netty
 
@@ -3163,7 +3163,7 @@ log4j.appender.stdout.layout.ConversionPattern=[%p] %C{1} - %m%n
 2) 由于 TCP 无消息保护边界, 需要在接收端处理消息边界问题，也就是我们所说的粘包、拆包问题, 
 3) 示意图 TCP 粘包、拆包图解
 
-![image-20201203181544261](Netty.assets/image-20201203181544261.png)
+![image-20201203181544261](img/Netty.assets/image-20201203181544261.png)
 
 假设客户端分别发送了两个数据包 D1 和 D2 给服务端，由于服务端一次读取到字节数是不确定的，故可能存在以下四种情况：
 1) 服务端分两次读取到了两个独立的数据包，分别是 D1 和 D2，没有粘包和拆包
@@ -3352,7 +3352,7 @@ public class MyClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
 2) 服务器端每次接收一个 Message, 分 5 次进行解码， 每读取到 一个 Message , 会回复一个 Message 对象 给客户端.
 
-![image-20201203184304517](Netty.assets/image-20201203184304517.png)
+![image-20201203184304517](img/Netty.assets/image-20201203184304517.png)
 
 
 
@@ -3700,7 +3700,7 @@ private ChannelFuture doBind(final SocketAddress localAddress) {
 
 4) 他们一起组成了双向链表，这些 Context 用于包装我们调用 addLast 方法时添加的 ChannelHandler（以下简称handler）
 
-![image-20201203204612875](Netty.assets/image-20201203204612875.png)
+![image-20201203204612875](img/Netty.assets/image-20201203204612875.png)
 
 1) 上图中：ChannelSocket 和 ChannelPipeline 是一对一的关联关系，而 pipeline 内部的多个 Context 形成了链表，Context 只是对 Handler 的封装。
 2) 当一个请求进来的时候，会进入 Socket 对应的 pipeline，并经过 pipeline 所有的 handler，对，就是设计模式中的**过滤器模式**。
@@ -3709,13 +3709,13 @@ private ChannelFuture doBind(final SocketAddress localAddress) {
 
 pipeline 的接口设计
 
-![image-20201203204719260](Netty.assets/image-20201203204719260.png)
+![image-20201203204719260](img/Netty.assets/image-20201203204719260.png)
 
 看到该接口继承了 inBound，outBound，Iterable 接口，表示他可以调用数据出站的方法和入站的方法，同时也能遍历内部的链表， 看看他的几个代表性的方法，基本上都是针对 handler 链表的插入，追加，删除，替换操作，类似是一个 LinkedList。同时，也能返回 channel（也就是 socket）
 
 1) 在 pipeline 的接口文档上，提供了一幅图
 
-![image-20201203205008474](Netty.assets/image-20201203205008474.png)
+![image-20201203205008474](img/Netty.assets/image-20201203205008474.png)
 
 * 这是一个 handler 的 list，handler 用于处理或拦截入站事件和出站事件，pipeline 实现了过滤器的高级形式，以便用户控制事件如何处理以及 handler 在 pipeline 中如何交互。
 * 上图描述了一个典型的 handler 在 pipeline 中处理 I/O 事件的方式，IO 事件由 inboundHandler 或者outBoundHandler 处理，并通过调用ChannelHandlerContext.fireChannelRead 方法转发给其最近的处理程序 。
@@ -3769,7 +3769,7 @@ ChannelDuplexHandler 处理出站和入站事件
 
 ### ChannelHandlerContext 作用及设计
 
-![image-20201203205331931](Netty.assets/image-20201203205331931.png)
+![image-20201203205331931](img/Netty.assets/image-20201203205331931.png)
 
 ChannelHandlerContext 继承了出站方法调用接口和入站方法调用接口
 
@@ -3860,7 +3860,7 @@ EventLoopGroup bossGroup = new NioEventLoopGroup(1)
 
 **NioEventLoop** **的继承图**
 
-![image-20201203210442021](Netty.assets/image-20201203210442021.png)
+![image-20201203210442021](img/Netty.assets/image-20201203210442021.png)
 
 1) ScheduledExecutorService 接口表示是一个定时任务接口，EventLoop 可以接受定时任务
 
@@ -3907,11 +3907,11 @@ EventLoopGroup bossGroup = new NioEventLoopGroup(1)
 
 3） 常见的 RPC 框架有: 比较知名的如阿里的Dubbo、google的gRPC、Go语言的rpcx、Apache的thrift，Spring旗下的 Spring Cloud。
 
-![image-20201203211230102](Netty.assets/image-20201203211230102.png)
+![image-20201203211230102](img/Netty.assets/image-20201203211230102.png)
 
 ## RPC 调用流程
 
-![image-20201203211324170](Netty.assets/image-20201203211324170.png)
+![image-20201203211324170](img/Netty.assets/image-20201203211324170.png)
 
 1) 服务消费方(client)以本地调用方式调用服务
 2) client stub 接收到调用后负责将方法、参数等封装成能够进行网络传输的消息体
@@ -3940,7 +3940,7 @@ EventLoopGroup bossGroup = new NioEventLoopGroup(1)
 3) 创建一个消费者，该类需要透明的调用自己不存在的方法，内部需要使用 Netty 请求提供者返回数据
 4) 开发的分析图
 
-![image-20201203211753088](Netty.assets/image-20201203211753088.png)
+![image-20201203211753088](img/Netty.assets/image-20201203211753088.png)
 
 
 
