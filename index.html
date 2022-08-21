@@ -11,24 +11,31 @@
 <body>
   <div id="app">加载中</div>
   <script>
+    //教程：https://mp.weixin.qq.com/s/TPXHaTdfTYKrcpm77gPHyA
     window.$docsify = {
       name: '', //侧边栏顶部的标题
 	    // 配置仓库地址
       repo: 'Potato20522/java-study',
       // 加载 _navbar.md
       loadNavbar: true,
-      // 加载 _sidebar.md
+      // 加载 _sidebar.md, 设置为false时, maxLevel才生效
       loadSidebar: false,
       // 切换页面后是否自动跳转到页面顶部
       auto2top: true,
       //开启封面
-      coverpage: true,
+      coverpage: false,
       //只在访问主页时加载封面
       onlyCover: false,
-	  maxLevel: 4,
+	  //根据标题自动生成侧边栏目录,控制着左侧的菜单的总层级
+	  maxLevel: 3,
+	  //表示由文档内容中的标题自动生成菜单的级别，从第一级起算。
+	  //例如subMaxLevel取2，表示一共两级，所以实际只显示第二级（##），
+	  //因为第一级默认跟外层的入口同级，显示外层的名字。
       subMaxLevel: 2,
       relativePath: true,
       autoHeader: true,
+	  // 小屏设备下合并导航栏到侧边栏
+	  mergeNavbar: true,
       //logo: "potato.png",
     }
   </script>
