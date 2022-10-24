@@ -1,10 +1,22 @@
+视频：https://www.bilibili.com/video/BV1gz4y1C7RK
+
+参考：
+
+- https://zhuanlan.zhihu.com/p/256355788
+- https://blog.csdn.net/unique_perfect/article/details/115108640
+
 # 1.NIO简介
 
 - Java NIO（New IO）是从Java 1.4版本开始引入的一个新的IO API，可以替代标准的Java IO API。NIO与原来的IO有同样的作用和目的，但是使用的方式完全不同，NIO支持面向缓冲区的、基于通道的IO操作。NIO将以更加高效的方式进行文件的读写操作。
+- 同步非阻塞，服务器实现模式为一个线程处理 多个请求(连接)，即客户端发送的连接请求都会注册到多路 复用器上，**多路复用器**轮询到连接有 I/O 请求就进行处理 
 
-## Java NIO 与 IO 的主要区别
+![](img/NIO.assets/NIO模型.svg)
 
 
+
+NIO 方式适用于**连接数目多且连接比较短**（轻操作）的架构，比如聊天服务器，弹幕系统，服务器间通讯等。
+
+**Java NIO 与 IO 的主要区别**
 
 |           IO            |             NIO             |
 | :---------------------: | :-------------------------: |
@@ -12,15 +24,40 @@
 |   阻塞IO(Blocking IO)   |  非阻塞IO(Non Blocking IO)  |
 |          (无)           |      选择器(Selectors)      |
 
+
+
 ![image-20200823195145107](NIO&JUC.assets/image-20200823195145107.png)
 
-# 2.缓冲区
+### 三大核心组件
 
-- Java NIO系统的**核心**在于：**通道(Channel)和缓冲区(Buffer)**。通道表示打开到 IO 设备(例如：文件、套接字)的连接。若需要使用 NIO 系统，需要获取用于连接 IO 设备的通道以及用于容纳数据的缓冲区。然后操作缓冲区，对数据进行处理。
+- **Buffer缓冲区**
 
-简而言之，Channel 负责传输， Buffer 负责存储
+缓冲区本质上是一块可以写入数据，然后可以从中读取数据的内存。这块内存被包装成NIO Buffer对象，并提供了一组方法，用来方便的访问该块内存。相比较直接对数组的操作，Buffer API更加容易操作和管理。
 
-## 缓冲区
+- **Channel（通道）**
+
+Java NIO的通道类似流，但又有些不同：既可以从通道中读取数据，又可以写数据到通道。但流的（input或output)读写通常是单向的。 通道可以非阻塞读取和写入通道，通道可以支持读取或写入缓冲区，也支持异步地读写。
+
+- **Selector选择器**
+
+Selector是 一个Java NIO组件，可以能够检查一个或多个 NIO 通道，并确定哪些通道已经准备好进行读取或写入。这样，一个单独的线程可以管理多个channel，从而管理多个网络连接，提高效率
+
+![img](img/NIO.assets/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3VuaXF1ZV9wZXJmZWN0,size_16,color_FFFFFF,t_70.png)
+
+- 每个 channel 都会对应一个 Buffer
+- 一个线程对应Selector ， 一个Selector对应多个 channel(连接)
+- 程序切换到哪个 channel 是由事件决定的
+- Selector 会根据不同的事件，在各个通道上切换
+- Buffer 就是一个内存块 ， 底层是一个数组
+- 数据的读取写入是通过 Buffer完成的 , BIO 中要么是输入流，或
+  者是输出流, 不能双向，但是 NIO 的 Buffer 是可以读也可以写。
+- Java NIO系统的核心在于：通道(Channel)和缓冲区 (Buffer)。**通道表示打开到 IO 设备(**例如：文件、 套接字)的连接。若需要使用 NIO 系统，需要获取 用于连接 IO 设备的通道以及用于容纳数据的缓冲 区。然后操作缓冲区，对数据进行处理。简而言之，**Channel 负责传输， Buffer 负责存取数据**
+
+# 2.缓冲区（Buffer）
+
+![image-20221024221718217](img/NIO.assets/image-20221024221718217.png)
+
+## Buffer类介绍
 
 **缓冲区（Buffer）**：一个用于特定基本数据类型的容器。由 java.nio 包定义的，所有缓冲区都是 Buffer 抽象类的子类。
 
@@ -39,19 +76,21 @@ Buffer 就像一个数组，可以保存多个相同类型的数据。根据数�
 
 上述 Buffer 类 他们都采用相似的方法进行管理数据，只是各自管理的数据类型不同而已。都是通过如下方法获取一个 Buffer 对象：
 
+```java
+static XxxBuffer allocate(int capacity);
+```
+
 ## 缓冲区的基本属性
 
 **容量** **(capacity)** **：**表示 Buffer 最大数据容量，缓冲区容量不能为负，并且创建后**不能更改**。
 
-**限制 (limit)**：第一个不应该读取或写入的数据的索引，即位于 limit 后的数据不可读写。缓冲区的限制不能为负，并且**不能大于其容量**。
+**限制 (limit)**：第一个不应该读取或写入的数据的索引，表示**缓冲区中可以操作数据的大小**，即**位于 limit 后的数据不可读写**。缓冲区的限制不能为负，并且**不能大于其容量**。写入模式，limit等于buffer的容量。读取模式，limit等于写入的数据量（因为读到最后时，buffer可能没满，所以小于capacity）。
 
 **位置 (position)**：下一个要读取或写入的数据的索引。缓冲区的位置不能为负，并且不能大于其限制
 
-**标记 (mark)**与**重置 (reset)**：标记是一个索引，通过 Buffer 中的 mark() 方法
-指定 Buffer 中一个特定的 position，之后可以通过调用 reset() 方法恢复到这
-个 position.
+**标记 (mark)**与**重置 (reset)**：标记是一个索引，通过 Buffer 中的 mark() 方法指定 Buffer 中一个特定的 position，之后可以通过调用 reset() 方法恢复到这个 position。可以将当前的position临时存入mark中；需要的时候，可以再从mark标记恢复到position位置。
 
-标记、位置、限制、容量遵守以下不变式：  mark <= position <= limit <= capacity
+标记、位置、限制、容量遵守以下不变式：  **mark <= position <= limit <= capacity**
 
 ![image-20200823203035458](NIO&JUC.assets/image-20200823203035458.png)
 
@@ -132,27 +171,31 @@ public void test2(){
 }
 ```
 
-Buffer的常用方法总结
+## Buffer的常用方法总结
 
 ```java
 Buffer clear() 	//清空缓冲区并返回对缓冲区的引用
-Buffer flip() //将缓冲区的界限设置为当前位置，并将当前位置充值为 0
+Buffer flip() //将缓冲区的界限设置为当前位置，并将当前位置充值为 0。即将写入模式翻转成读取模式
 int capacity() //返回 Buffer 的 capacity 大小
 boolean hasRemaining() //判断缓冲区中是否还有元素
 int limit() //返回 Buffer 的界限(limit) 的位置
 Buffer limit(int n) //将设置缓冲区界限为 n, 并返回一个具有新 limit 的缓冲区对象
-Buffer mark() //对缓冲区设置标记
+Buffer mark() //对缓冲区设置标记，将当前position的值保存起来，放在mark属性中，让mark属性记住这个临时位置；之后，可以调用Buffer.reset()方法将mark的值恢复到position中
 int position() //返回缓冲区的当前位置 position
 Buffer position(int n) //将设置缓冲区的当前位置为 n , 并返回修改后的 Buffer 对象
 int remaining() //返回 position 和 limit 之间的元素个数
 Buffer reset() //将位置 position 转到以前设置的 mark 所在的位置
-Buffer rewind() //将位置设为为 0， 取消设置的 mark
+Buffer rewind() //将位置设为为 0， 取消设置的 mark。已经读完的数据，如果需要再读一遍，可以调用rewind()方法。rewind()也叫倒带，就像播放磁带一样倒回去，再重新播放。
 ```
 
-**缓冲区的数据操作**
+Buffer的模式转换，大致如下图所示:
+
+![img](img/NIO.assets/v2-35cecf188b5c08916312b7b0a8bcb11f_720w.webp)
+
+## 缓冲区的数据读写
 
 - 获取 Buffer 中的数据
-  - get() ：读取单个字节
+  - get() ：读取单个字节，每次从position的位置读取一个数据，并且进行相应的缓冲区属性的调整。
   - get(byte[] dst)：批量读取多个字节到 dst 中
   - get(int index)：读取指定索引位置的字节(不会移动 position)
 
@@ -160,6 +203,13 @@ Buffer rewind() //将位置设为为 0， 取消设置的 mark
   - put(byte b)：将给定单个字节写入缓冲区的当前位置
   - put(byte[] src)：将 src 中的字节写入缓冲区的当前位置
   - put(int index, byte b)：将指定字节写入缓冲区的索引位置(不会移动 position)
+
+使用Buffer读写数据一般是这么个步骤：
+
+1. 写入数据到 Buffer
+2. 调用flip()方法,转换为读取模式
+3. 从 Buffer中读取数据
+4. 调用 buffer.clear()方法或者 buffer.compact()方法清除缓冲区
 
 ## 直接与非直接缓冲区
 
@@ -742,9 +792,8 @@ void close()                                                                    
 
 ## SocketChannel
 
-- Java NIO中的SocketChannel是一个连接到TCP网
-  络套接字的通道。
-
+- Java NIO中的SocketChannel是一个连接到TCP网络套接字的通道。
+  
 - 操作步骤：
   - 打开 SocketChannel
   - 读写数据
