@@ -1,4 +1,7 @@
-视频：https://www.bilibili.com/video/BV1gz4y1C7RK
+视频：
+
+- https://www.bilibili.com/video/BV1gz4y1C7RK
+- https://www.bilibili.com/video/BV1py4y1E7oA
 
 参考：
 
@@ -67,6 +70,10 @@ Java NIO 中的 **Buffer** 主要用于与 NIO 通道进行交互，数据是从
 Buffer 就像一个数组，可以保存多个相同类型的数据。根据数据类型不同(boolean 除外) ，有以下 Buffer 常用子类：
 
 - ByteBuffer
+  - MappedByteBuffer
+  - DirectByteBuffer
+  - HeapByteBuffer
+
 - CharBuffer
 - ShortBuffer
 - IntBuffer
@@ -174,7 +181,7 @@ public void test2(){
 ## Buffer的常用方法总结
 
 ```java
-Buffer clear() 	//清空缓冲区并返回对缓冲区的引用
+Buffer clear() 	//清空缓冲区并返回对缓冲区的引用，只是将位置重置，并没有清除里面的数据
 Buffer flip() //将缓冲区的界限设置为当前位置，并将当前位置充值为 0。即将写入模式翻转成读取模式
 int capacity() //返回 Buffer 的 capacity 大小
 boolean hasRemaining() //判断缓冲区中是否还有元素
@@ -191,6 +198,34 @@ Buffer rewind() //将位置设为为 0， 取消设置的 mark。已经读完的
 Buffer的模式转换，大致如下图所示:
 
 ![img](img/NIO.assets/v2-35cecf188b5c08916312b7b0a8bcb11f_720w.webp)
+
+
+
+```java
+ByteBuffer buf = ByteBuffer.allocate(10);
+buf.put("potato!".getBytes());
+buf.flip();
+byte[] b = new byte[2];
+buf.get(b);
+String s = new String(b);
+System.out.println(s);
+System.out.println("position:"+buf.position());//2
+System.out.println("limit:"+buf.limit());//7
+System.out.println("capacity:"+buf.capacity());//10
+System.out.println("--------");
+buf.mark();//标记这个位置
+byte[] b2 = new byte[3];
+buf.get(b2);
+System.out.println(new String(b2));
+System.out.println("position:"+buf.position());//5
+System.out.println("limit:"+buf.limit());//7
+System.out.println("capacity:"+buf.capacity());//10
+System.out.println("--------");
+buf.reset();
+if (buf.hasRemaining()) {
+    System.out.println(buf.remaining());//5
+}
+```
 
 ## 缓冲区的数据读写
 
@@ -215,9 +250,26 @@ Buffer的模式转换，大致如下图所示:
 
 - 字节缓冲区要么是直接的，要么是非直接的。如果为直接字节缓冲区，则 Java 虚拟机会尽最大努力直接在此缓冲区上执行本机 I/O 操作。也就是说，在每次调用基础操作系统的一个本机 I/O 操作之前（或之后），虚拟机都会尽量避免将缓冲区的内容复制到中间缓冲区中（或从中间缓冲区中复制内容）。
 
-- 直接字节缓冲区可以通过调用此类的 allocateDirect() 工厂方法来创建。此方法返回的缓冲区进行分配和取消分配所需成本通常高于非直接缓冲区。直接缓冲区的内容可以驻留在常规的垃圾回收堆之外，因此，它们对应用程序的内存需求量造成的影响可能并不明显。所以，建议将直接缓冲区主要分配给那些易受基础系统的本机 I/O 操作影响的大型、持久的缓冲区。一般情况下，最好仅在直接缓冲区能在程序性能方面带来明显好处时分配它们。
+- 直接字节缓冲区可以通过调用此类的 **allocateDirect**() 工厂方法来创建。此方法返回的缓冲区进行**分配和取消分配所需成本通常高于非直接缓冲区**。直接缓冲区的内容可以驻留在常规的垃圾回收堆之外，因此，它们对应用程序的内存需求量造成的影响可能并不明显。所以，建议将直接缓冲区主要分配给那些易受基础系统的本机 I/O 操作影响的大型、持久的缓冲区。一般情况下，最好仅在直接缓冲区能在程序性能方面带来明显好处时分配它们。
 - 直接字节缓冲区还可以通过 FileChannel 的 map() 方法 将文件区域直接映射到内存中来创建。该方法返回MappedByteBuffer 。Java 平台的实现有助于通过 JNI 从本机代码创建直接字节缓冲区。如果以上这些缓冲区中的某个缓冲区实例指的是不可访问的内存区域，则试图访问该区域不会更改该缓冲区的内容，并且将会在访问期间或稍后的某个时间导致抛出不确定的异常。
 - 字节缓冲区是直接缓冲区还是非直接缓冲区可通过调用其 isDirect() 方法来确定。提供此方法是为了能够在性能关键型代码中执行显式缓冲区管理。
+
+从数据流角度，非直接内存是这样的作用链：
+
+```
+本地IO-->直接内存(内核)-->非直接内存-->直接内存(内核)-->本地IO
+```
+
+而直接内存是：
+
+```
+本地IO-->直接内存(内核)-->本地IO
+```
+
+使用场景：
+
+- 有很大的数据需要存储，它的生命周期又很长
+- 适合频繁IO操作，比如网络并发场景。
 
 **非直接缓冲区**
 
@@ -238,7 +290,64 @@ Buffer的模式转换，大致如下图所示:
     }
 ```
 
+- HeapByteBuffer Java堆内存，读写效率低，分配内存效率高，受到GC的影响(对象在内存中发生移动搬迁)
+- DirectByteBuffer 直接内存，**读写效率高**(少一次拷贝)，**分配内存效率低**，不受GC影响
+
+## Bytebuffer粘包拆包分析
+
+网上有多条数据发送给服务端，数据之间使用\n进行分隔但由于某种原因这些数据在接收时，被进行了重新组合，例如原始数据有3条为：
+
+```
+Hello, world\n
+I'm zhangsan \n
+How are you?\n
+```
+
+变成了下面的两个 bytebuffer
+
+```
+Hello, world\nI'm zhangsan \nHo
+W are you?\n
+```
+
+现在要求你编写程序,将错乱的数据恢复成原始的按\n分隔的数据
+
+粘包：因为为了效率高，把好几个数据一次性发了
+
+拆包：缓冲区塞满了，被拆开
+
+```java
+@Test
+void test() {
+    ByteBuffer source = ByteBuffer.allocate(32);
+    source.put("Hello, world\nI'm zhangsan\nHo".getBytes());
+    split(source);
+    source.put("w are you?\n".getBytes());
+    split(source);
+}
+private void split(ByteBuffer source) {
+    source.flip();
+    for (int i = 0; i < source.limit(); i++) {
+        if (source.get(i)=='\n') {//get(i)不会导致指针移动
+            //把这条消息存入新的bytebuffer
+            int length = i + 1 - source.position();
+            ByteBuffer target = ByteBuffer.allocate(length);
+            //从source向target写
+            for (int j = 0; j < length; j++) {
+                target.put(source.get());
+            }
+        }
+    }
+    //将未读完的数据，移到数据前面，便于下次读
+    source.compact();
+}
+```
+
+这写法，不是很高效，后续再将
+
 # 3.通道（Channel）
+
+Channel是读写数据的双向通道，类似Stream，可以从Channel将数据读入buffer，也可以将buffer的数据写入channel，而之前的stream要么是输入，要么是输出，Channel比Stream更为底层
 
 通道（Channel）：由 java.nio.channels 包定义的。Channel 表示 IO 源与目标打开的连接。Channel 类似于传统的“流”。只不过 Channel 本身不能直接访问数据，Channel 只能与Buffer 进行交互。
 
@@ -266,154 +375,116 @@ Java 为 **Channel 接口**提供的最主要**实现类**如下：
 
 获取通道的其他方式是使用 Files 类的静态方法 newByteChannel() 获取字节通道。或者通过通道的静态方法 open() 打开并返回指定通道。
 
-## **通道的数据传输**
+## FileChannel文件通道
 
-- 将 Buffer 中数据写入 Channel
+不能直接获取FileChannel，需要通过FileInputStream、FileOutputStream、RamdomAccessFile来获取FileChannel。
+
+- FileInputStream获取的channel只能读
+- FileOutputStream获取的channel只能写
+- RamdomAccessFile获取的channel是否能读写根据构造RamdomAccessFile时的读写模式决定
 
 ```java
-int bytesWritten = inChannel.write(buf);
+int read(ByteBuffer dst);//从Channel中读取到数据到ByteBuffer
+long read(ByteBuffer[] dsts);//将Channel中的数据"分散"到ByteBuffer[]
+int write(ByteBuffer src);//将ByteBuffer中的数据写入到Channel
+long write(ByteBuffer[] srcs);//将ByteBuffer[]的数据聚集到Channel
+long position();//返回此通道的文件位置
+FileChannel posiotn(long p);//设置此通道的文件位置
+long size();//返回此通道的文件的当前大小
+FileChannel truncate(long s);//将此通道的文件截取为给定大小
+void force(boolean metaData);//强制将所有对此通道的文件更新写入导到存储设备中。因为操作系统处于性能的考虑，会将数据缓存，而不是立即写入磁盘
 ```
 
-- 从 Channel 读取数据到 Buffer
+### 案例1-本地文件写数据
 
-  ```java
-  int bytesRead = inChannel.read(buf);
-  ```
-  ```java
-  
-  /**
-   * 一、通道Channel：用户源节点与目标节点的连接，NIO中负责缓冲区中数据的传输。
-   * Channel本身不存储数据，因此需要配合缓冲区进行传输
-   *
-   * 二、通道的树妖实现类
-   * java.nio.channels.Channel接口
-   *     FileChannel
-   *     SocketChannel
-   *     ServerSocketChannel
-   *     DatagramChannel
-   *
-   * 三、获取通道
-   * 1.Java针对支持提到的类提供了getChannel()方法
-   *     本地IO：
-   *     FileInputStream/ FileOutputStream
-   *     RandomAccessFile
-   *     网络IO：
-   *     DatagramSocket
-   *     Socket
-   *     ServerSocket
-   * 2.JDK1.7中的NIO.2针对各个通道提供了静态方法open()
-   * 3.JDK1.7中的NIO.2的Files工具类的newByteChannel()
-   * 四、通道之间的数据传输
-   * transferFrom()
-   * transferTo()
-   *
-   * 五、分散(Scatter)与聚集(Gather)
-   * 分散读取（Scattering Reads）:将通道中的数据分散到多个缓冲区中
-   * 聚集写入（Gathering Writer):将多个缓冲区的数据聚集到通道中
-   *
-   * 六、字符集Charset
-   * 编码：字符串->字节数组
-   * 解码：字节数组->字符串
-   */
-  ```
-
-  
+使用ByteBuffer和FileChannel，将"hello,Potato程序员!"写入到data.txt中
 
 ```java
- //1.利用通道完成文件的复制(非直接缓冲区)
-    @Test
-    public void test1(){
-        long start = System.currentTimeMillis();
-        FileInputStream fis = null;
-        FileOutputStream fos = null;
-        FileChannel inChannel = null;
-        FileChannel outChannel = null;
-        try {
-            fis = new FileInputStream("1.jpg");
-            fos = new FileOutputStream("2.jpg");
-            //1.1获取通道
-            inChannel = fis.getChannel();
-            outChannel = fos.getChannel();
+//字节输出流通向文件
+FileOutputStream fos = new FileOutputStream("src/main/java/nio/channel/data01.txt");
+//都得到输出流对应的Channel
+FileChannel channel = fos.getChannel();
+//分配缓冲区
+ByteBuffer buffer = ByteBuffer.allocate(1024);
+buffer.put("hello,Potato程序员!".getBytes());
+//缓冲区切换成写出模式
+buffer.flip();
+channel.write(buffer);
+fos.close();
+```
 
-            //1.2分配指定大小的缓存区
-            ByteBuffer buf = ByteBuffer.allocate(1024);
+### 案例2-本地文件读数据
 
-            //1.3将通道中的数据存入缓冲区中
-            while (inChannel.read(buf)!=-1){
-                buf.flip();//切换读取数据的模式
-                //1.4将缓冲区中的数据写入通道中
-                outChannel.write(buf);
-                buf.clear();//清空缓冲区
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }finally {
-            if (outChannel!=null){
-                try {
-                    outChannel.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (inChannel!=null){
-                try {
-                    inChannel.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (fos!=null){
-                try {
-                    fos.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (fis!=null){
-                try {
-                    fis.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        long end = System.currentTimeMillis();
-        System.out.println("所耗费的时间："+(end-start));
+使用ByteBuffer和FileChannel，将data01.txt中的数据读入程序，并显示
 
+```java
+FileInputStream fis = new FileInputStream("src/main/java/nio/channel/data01.txt");
+FileChannel channel = fis.getChannel();
+ByteBuffer buffer = ByteBuffer.allocate(1024);
+//数据读取到缓冲区
+channel.read(buffer);
+buffer.flip();
+System.out.println(new String(buffer.array(),0,buffer.remaining()));
+fis.close();
+```
 
+### 案例3-使用buffer完成文件复制
 
+```java
+@Test
+void testCopy() throws Exception {
+    long start = System.currentTimeMillis();
+    String srcFile = "D:\\迅雷下载\\龙之家族.House.of.the.Dragon.S01E07.1080p.H265-NEW字幕组.mp4";
+    String destFile = "D:\\迅雷下载\\龙之家族.House.of.the.Dragon.S01E07.1080p.H265-NEW字幕组-copy.mp4";
+    FileInputStream fis = new FileInputStream(srcFile);
+    FileOutputStream fos = new FileOutputStream(destFile);
+    FileChannel is = fis.getChannel();
+    FileChannel os = fos.getChannel();
+    ByteBuffer buffer = ByteBuffer.allocate(1204);
+    while (is.read(buffer) > -1) {
+        //切换到读取模式
+        buffer.flip();
+        os.write(buffer);
+        //先清空缓冲区，再写入
+        buffer.clear();
     }
+    fis.close();
+    fos.close();
+    long end = System.currentTimeMillis();
+    System.out.println("复制完成，耗时:"+(end-start)+" ms");//16163
+}
 ```
 
 
 
 ```java
-    //2.使用直接缓冲区完成文件的复制（内存映射文件）
-    @Test
-    public void test2() throws IOException {
-        long start = System.currentTimeMillis();
-        FileChannel inChannel = FileChannel.open(Paths.get("1.jpg"), StandardOpenOption.READ);
-        FileChannel outChannel = FileChannel.open(Paths.get("3.jpg"), StandardOpenOption.WRITE,StandardOpenOption.READ,StandardOpenOption.CREATE);
+//使用直接缓冲区完成文件的复制（内存映射文件）
+@Test
+void testCopy2() throws Exception {
+    long start = System.currentTimeMillis();
+    String srcFile = "D:\\迅雷下载\\龙之家族.House.of.the.Dragon.S01E07.1080p.H265-NEW字幕组.mp4";
+    String destFile = "D:\\迅雷下载\\龙之家族.House.of.the.Dragon.S01E07.1080p.H265-NEW字幕组-copy.mp4";
+    FileChannel inChannel = FileChannel.open(Paths.get(srcFile), READ);
+    FileChannel outChannel = FileChannel.open(Paths.get(destFile), WRITE, READ, CREATE);
+    //内存映射文件
+    MappedByteBuffer inMapBuffer = inChannel.map(FileChannel.MapMode.READ_ONLY, 0, inChannel.size());
+    MappedByteBuffer outMapBuffer = outChannel.map(FileChannel.MapMode.READ_WRITE, 0, inChannel.size());
 
-        //内存映射文件
-        MappedByteBuffer inMapBuffer = inChannel.map(FileChannel.MapMode.READ_ONLY, 0, inChannel.size());
-        MappedByteBuffer outMapBuffer = outChannel.map(FileChannel.MapMode.READ_WRITE, 0, inChannel.size());
+    //直接对缓冲区进行数据的读写操作
+    byte[] dst = new byte[inMapBuffer.limit()];
+    inMapBuffer.get(dst);
+    outMapBuffer.put(dst);
 
-        //直接对缓冲区进行数据的读写操作
-        byte[] dst = new byte[inMapBuffer.limit()];
-        inMapBuffer.get(dst);
-        outMapBuffer.put(dst);
-
-        inChannel.close();
-        outChannel.close();
-        long end = System.currentTimeMillis();
-        System.out.println("所耗费的时间："+(end-start));
-    }
+    inChannel.close();
+    outChannel.close();
+    long end = System.currentTimeMillis();
+    System.out.println("复制完成，耗时:："+(end-start)+" ms");//1027 ms
+}
 ```
 
 
 
-## 分散(Scatter)和聚集(Gather)
+### 案例4-分散(Scatter)和聚集(Gather)
 
 - 分散读取（Scattering Reads）是指从 Channel 中读取的数据“分散”到多个 Buffer 中。
 
@@ -427,19 +498,61 @@ int bytesWritten = inChannel.write(buf);
 
 注意：按照缓冲区的顺序，写入 position 和 limit 之间的数据到 Channel 。
 
+```java
+FileInputStream fis = new FileInputStream("src/main/java/nio/channel/data01.txt");
+FileOutputStream fos = new FileOutputStream("src/main/java/nio/channel/data02.txt");
+FileChannel isChannel = fis.getChannel();
+FileChannel osChannel = fos.getChannel();
+ByteBuffer buffer1 = ByteBuffer.allocate(4);
+ByteBuffer buffer2 = ByteBuffer.allocate(1024);
+ByteBuffer[] buffers = {buffer1, buffer2};
+
+isChannel.read(buffers);
+for (ByteBuffer buffer : buffers) {
+    buffer.flip();//切换到读
+    System.out.println(new String(buffer.array(),0,buffer.remaining()));
+}
+
+//聚集写入到通道
+osChannel.write(buffers);
+fis.close();
+fos.close();
+```
+
+### 案例5-transferFrom和transferTo
+
+底层使用了操作系统的零拷贝进行优化
+
 **transferFrom()**
 
 将数据从源通道传输到其他 Channel 中：
 
 transferFrom(来自哪个通道fromChannel），最多传输的字节数(fromChannel.size()),传输位置（0）)
 
-
-
 **transferTo()**
 
 将数据从源通道传输到其他 Channel 中：
 
 transferTo(传输位置（0），最多传输的字节数(toChannel.size()),传输位置（0）,去哪个通道(toChannel))
+
+
+
+```java
+@Test
+void testTransfer()  throws IOException{
+    FileInputStream fis = new FileInputStream("src/main/java/nio/channel/data01.txt");
+    FileOutputStream fos = new FileOutputStream("src/main/java/nio/channel/data03.txt");
+    FileChannel isChannel = fis.getChannel();
+    FileChannel osChannel = fos.getChannel();
+    //内部使用 MappedByteBuffer 进行传输
+    //osChannel.transferFrom(isChannel, isChannel.position(), isChannel.size());
+    isChannel.transferTo(isChannel.position(), isChannel.size(), osChannel);
+    fis.close();
+    fos.close();
+}
+```
+
+
 
 ```java
     //通道之间的数据传输(直接缓冲区)
@@ -487,20 +600,7 @@ transferTo(传输位置（0），最多传输的字节数(toChannel.size()),传�
     }
 ```
 
-**FileChannel 的常用方法**
 
-**方 法**                                                                      **描 述**
-
-**int read(ByteBuffer dst)**  							 **从 Channel 中读取数据到 ByteBuffer**
-
-**long read(ByteBuffer[] dsts)** 							**将 Channel 中的数据“分散”到 ByteBuffer[]**
-**int write(ByteBuffer src)** 									**将 ByteBuffer 中的数据写入到 Channel**
-**long write(ByteBuffer[] srcs)**							 **将 ByteBuffer[] 中的数据“聚集”到 Channel**
-long position()													 返回此通道的文件位置
-FileChannel position(long p) 							设置此通道的文件位置
-long size()															 返回此通道的文件的当前大小
-FileChannel truncate(long s) 							将此通道的文件截取为给定大小
-void force(boolean metaData)						强制将所有对此通道的文件更新写入到存储设备中
 
 ```java
  //字符集
@@ -576,6 +676,21 @@ void force(boolean metaData)						强制将所有对此通道的文件更新写�
 
         channel2.write(bufs);
     }
+```
+
+#### transfer传输2G以上的文件
+
+transferFrom和transferTo一次只能传输2G的文件，怎么改进呢，多次传输
+
+```java
+try (FileChannel from = new FileInputStream("data.txt").getChannel();
+     FileChannel to = new FileOutputStream("to.txt").getChannel();) {
+    long size = from.size();
+    //left变量代表还剩余多少字节
+    for (long left = size; left > 0;) {
+        left -= from.transferTo((size-left), left, to);
+    }
+}
 ```
 
 
@@ -721,6 +836,8 @@ public class TestNonBlockingNIO2 {
 ## 选择器（Selector）
 
 选择器（Selector） 是 SelectableChannle 对象的多路复用器，**Selector 可以同时监控多个 SelectableChannel 的 IO 状况**，也就是说，利用 **Selector 可使一个单独的线程管理多个 Channel。Selector 是非阻塞 IO 的核心。**
+
+多路复用仅针对网络IO、普通文件IO没法利用多路复用。
 
 SelectableChannle 的结构如下图：
 

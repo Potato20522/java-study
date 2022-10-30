@@ -3,6 +3,7 @@ package nio.buffer;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 /**
  * Buffer clear() 	//清空缓冲区并返回对缓冲区的引用
@@ -67,5 +68,39 @@ public class BufferTest {
         System.out.println("limit:"+buffer.limit());//10
         System.out.println("capacity:"+buffer.capacity());//10
         System.out.println((char) buffer.get());//p
+        System.out.println("--------");
+
+        //标记
+        ByteBuffer buf = ByteBuffer.allocate(10);
+        buf.put("potato!".getBytes());
+        buf.flip();
+        byte[] b = new byte[2];
+        buf.get(b);
+        String s = new String(b);
+        System.out.println(s);
+        System.out.println("position:"+buf.position());//2
+        System.out.println("limit:"+buf.limit());//7
+        System.out.println("capacity:"+buf.capacity());//10
+        System.out.println("--------");
+        buf.mark();//标记这个位置
+        byte[] b2 = new byte[3];
+        buf.get(b2);
+        System.out.println(new String(b2));
+        System.out.println("position:"+buf.position());//5
+        System.out.println("limit:"+buf.limit());//7
+        System.out.println("capacity:"+buf.capacity());//10
+        System.out.println("--------");
+        buf.reset();
+        if (buf.hasRemaining()) {
+            System.out.println(buf.remaining());//5
+        }
+    }
+
+    //直接内存、非直接内存
+    @Test
+    void test03() {
+        //直接内存缓冲区
+        ByteBuffer buffer = ByteBuffer.allocateDirect(1024);
+
     }
 }
