@@ -722,6 +722,39 @@ try (FileChannel from = new FileInputStream("data.txt").getChannel();
 
 Java NIO 是非阻塞模式的。当线程从某通道进行读写数据时，若没有数据可用时，该线程可以进行其他任务。线程通常将非阻塞 IO 的空闲时间用于在其他通道上执行 IO 操作，所以单独的线程可以管理多个输入和输出通道。因此，NIO 可以让服务器端使用一个或有限几个线程来同时处理连接到服务器端的所有客户端。
 
+**阻塞**
+
+* 阻塞模式下，相关方法都会导致线程暂停
+  * ServerSocketChannel.accept 会在没有连接建立时让线程暂停
+  * SocketChannel.read 会在没有数据可读时让线程暂停
+  * 阻塞的表现其实就是线程暂停了，暂停期间不会占用 cpu，但线程相当于闲置
+* 单线程下，阻塞方法之间相互影响，几乎不能正常工作，需要多线程支持
+* 但多线程下，有新的问题，体现在以下方面
+  * 32 位 jvm 一个线程 320k，64 位 jvm 一个线程 1024k，如果连接数过多，必然导致 OOM，并且线程太多，反而会因为频繁上下文切换导致性能降低
+  * 可以采用线程池技术来减少线程数和线程上下文切换，但治标不治本，如果有很多连接建立，但长时间 inactive，会阻塞线程池中所有线程，因此不适合长连接，只适合短连接
+
+**非阻塞**
+
+* 非阻塞模式下，相关方法都会不会让线程暂停
+  * 在 ServerSocketChannel.accept 在没有连接建立时，会返回 null，继续运行
+  * SocketChannel.read 在没有数据可读时，会返回 0，但线程不必阻塞，可以去执行其它 SocketChannel 的 read 或是去执行 ServerSocketChannel.accept 
+  * 写数据时，线程只是等待数据写入 Channel 即可，无需等 Channel 通过网络把数据发送出去
+* 但非阻塞模式下，即使没有连接建立，和可读数据，线程仍然在不断运行，白白浪费了 cpu
+* 数据复制过程中，线程实际还是阻塞的（AIO 改进的地方）
+
+**多路复用**
+
+单线程可以配合 Selector 完成对多个 Channel 可读写事件的监控，这称之为多路复用
+
+* 多路复用仅针对网络 IO、普通文件 IO 没法利用多路复用
+* 如果不用 Selector 的非阻塞模式，线程大部分时间都在做无用功，而 Selector 能够保证
+  * 有可连接事件时才去连接
+  * 有可读事件才去读取
+  * 有可写事件才去写入
+    * 限于网络传输能力，Channel 未必时时可写，一旦 Channel 可写，会触发 Selector 的可写事件
+
+
+
 ### 案例1-NIO阻塞
 
 #### 代码
@@ -1044,7 +1077,7 @@ Selector wakeup()                                          使一个还未返回
 
 void close()                                                                              关闭该选择器
 
-### 案例3-Selector处理accept
+### accept事件
 
 ```java
 //1.创建 Selector，管理多个 channel
@@ -1090,7 +1123,7 @@ while (true) {
 
 再启动一个客户端来连接，发现还是刚才的key
 
-### 案例4-Selector处理read
+### 处理read事件
 
 SocketChannel上的read事件也要注册到selector上
 
@@ -1488,6 +1521,136 @@ ByteBuffer大小分配
 
 ### Selector写入内容过多问题
 
+* 非阻塞模式下，无法保证把 buffer 中所有数据都写入 channel，因此需要追踪 write 方法的返回值（代表实际写入字节数）
+* 用 selector 监听所有 channel 的可写事件，每个 channel 都需要一个 key 来跟踪 buffer，但这样又会导致占用内存过多，就有两阶段策略
+  * 当消息处理器第一次写入消息时，才将 channel 注册到 selector 上
+  * selector 检查 channel 上的可写事件，如果所有的数据写完了，就取消 channel 的注册
+  * 如果不取消，会每次可写均会触发 write 事件
+
+#### 代码
+
+服务端代码
+
+```java
+ServerSocketChannel ssc = ServerSocketChannel.open();
+ssc.configureBlocking(false);
+
+Selector selector = Selector.open();
+ssc.register(selector, SelectionKey.OP_ACCEPT);
+
+ssc.bind(new InetSocketAddress(8080));
+
+while (true) {
+    selector.select();
+    Iterator<SelectionKey> iter = selector.selectedKeys().iterator();
+    while (iter.hasNext()) {
+        SelectionKey key = iter.next();
+        iter.remove();
+        if (key.isAcceptable()) {
+            //因为这里只有一个 ServerSocketChannel，可以这么写
+            SocketChannel sc = ssc.accept();
+            sc.configureBlocking(false);
+            //1.向客户端发送大量数据
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < 30000000; i++) {
+                sb.append('a');
+            }
+            ByteBuffer buffer = Charset.defaultCharset().encode(sb.toString());
+            while (buffer.hasRemaining()) {
+                //2.返回值代表实际写入的字节数
+                int write = sc.write(buffer);//并不能保证一次把所有内容都写到客户端
+                System.out.println(write);
+            }
+        }
+    }
+}
+```
+
+客户端代码：
+
+```java
+SocketChannel sc = SocketChannel.open();
+sc.connect(new InetSocketAddress("localhost", 8080));
+//接收数据
+int count = 0;
+while (true) {
+    ByteBuffer buffer = ByteBuffer.allocate(1024 * 1024);
+    count += sc.read(buffer);
+    System.out.println(count);
+    buffer.clear();
+}
+```
+
+#### 改进--处理write事件
+
+```java
+ServerSocketChannel ssc = ServerSocketChannel.open();
+ssc.configureBlocking(false);
+
+Selector selector = Selector.open();
+ssc.register(selector, SelectionKey.OP_ACCEPT);
+
+ssc.bind(new InetSocketAddress(8080));
+
+while (true) {
+    selector.select();
+    Iterator<SelectionKey> iter = selector.selectedKeys().iterator();
+    while (iter.hasNext()) {
+        SelectionKey key = iter.next();
+        iter.remove();
+        if (key.isAcceptable()) {
+            SocketChannel sc = ssc.accept();//因为这里只有一个 ServerSocketChannel，可以这么写
+            sc.configureBlocking(false);
+            SelectionKey sckey = sc.register(selector, 0, null);
+            //1.向客户端发送大量数据
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < 30000000; i++) {
+                sb.append('a');
+            }
+            ByteBuffer buffer = Charset.defaultCharset().encode(sb.toString());
+            //2.返回值代表实际写入的字节数
+            int write = sc.write(buffer);//并不能保证一次把所有内容都写到客户端
+            System.out.println(write);
+            //3.判断是否有剩余内存
+            if (buffer.hasRemaining()) {
+                //4.关注可写事件 (+ 或者 | 运算，保留原来的 interestOps)
+                sckey.interestOps(sckey.interestOps() + SelectionKey.OP_WRITE);
+                //5.把未写完的数据挂到sckey上
+                sckey.attach(buffer);
+            }
+        } else if (key.isWritable()) {
+            ByteBuffer buffer = (ByteBuffer) key.attachment();
+            SocketChannel sc = (SocketChannel) key.channel();
+            int write = sc.write(buffer);
+            System.out.println(write);
+            //6.写完了，buffer清理
+            if (!buffer.hasRemaining()) {
+                key.attach(null);
+                //写完了，就不需要关注可写事件了
+                key.interestOps(key.interestOps() - SelectionKey.OP_WRITE);
+            }
+        }
+    }
+}
+```
+
+## 多线程优化
+
+> 现在都是多核 cpu，设计时要充分考虑别让 cpu 的力量被白白浪费
+
+前面的代码只有一个选择器，没有充分利用多核 cpu，如何改进呢？
+
+分两组选择器
+
+* 单线程配一个选择器，专门处理 accept 事件
+* 创建 cpu 核心数的线程，每个线程配一个选择器，轮流处理 read 事件
+
+![image-20221107232151809](img/NIO.assets/image-20221107232151809.png)
+
+
+
+
+
 ## SocketChannel
 
 - Java NIO中的SocketChannel是一个连接到TCP网络套接字的通道。
@@ -1642,7 +1805,8 @@ public class TestNonBlockingNIO {
   }
   ```
 
-  
+
+
 
 # 5.管道 (Pipe)
 

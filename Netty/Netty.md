@@ -1,3 +1,5 @@
+视频：https://www.bilibili.com/video/BV1DJ411m7NR/
+
 # Netty概述
 
 ## Netty是什么
