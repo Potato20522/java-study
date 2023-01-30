@@ -1,6 +1,7 @@
-package netty.c1;
+package netty.eventloop;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -11,10 +12,10 @@ import java.net.InetSocketAddress;
 /**
  * 客户端使用之前写的BIO、NIO客户端去连Netty服务端也是可以的，这里为了学习netty用
  */
-public class HelloClient {
+public class EventLoopClient {
     public static void main(String[] args) throws InterruptedException {
         //1.启动类
-        new Bootstrap()
+        Channel channel = new Bootstrap()
                 //2.添加 EventLoop
                 .group(new NioEventLoopGroup())
                 //3.选择客户端 channel 实现
@@ -29,10 +30,10 @@ public class HelloClient {
                 })
                 //5.连接到服务器
                 .connect(new InetSocketAddress("localhost", 8080))
-                .sync()
-                .channel()
-                //6.向服务器发送数据
-                .writeAndFlush("hello world")
-        ;
+                .sync()  // 阻塞方法，直到连接建立
+                .channel();
+
+        System.out.println(channel);
+        System.out.println("");
     }
 }
